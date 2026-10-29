@@ -535,6 +535,24 @@ function handleClick(event) {
       setTimeout(() => { const t = $('#chat-text'); if (t) t.focus(); }, 180);
       break;
 
+    case 'fe-otra-frase':
+      ui.feOffset = ((ui.feOffset || 0) + 1) % 17;
+      {
+        const respuesta = yasminFraseReply();
+        yasminGuardar('yasmin', respuesta.text);
+        ui.chatChips = respuesta.chips || [];
+        renderChatLog();
+        renderChatChips(ui.chatChips);
+      }
+      break;
+
+    case 'hablar-frase': {
+      closeModal();
+      navigate('yasmin');
+      setTimeout(() => yasminEnviar('Cuéntame de mi frase de hoy'), 220);
+      break;
+    }
+
     case 'yasmin-sugerencia':
       navigate('yasmin');
       setTimeout(() => yasminSugerencia(), 120);
@@ -628,6 +646,43 @@ function handleClick(event) {
     case 'allergies-unknown': {
       const campo = document.getElementById('f-allergies');
       if (campo) campo.value = 'Por confirmar con el equipo de salud';
+      break;
+    }
+
+    case 'foto-yasmin-cambiar':
+    case 'foto-andrea-cambiar': {
+      const esYasmin = target.dataset.action === 'foto-yasmin-cambiar';
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = async () => {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        try {
+          const dataUrl = await comprimirImagen(file, 360, 0.82);
+          await fotoGuardar(esYasmin ? 'foto-yasmin' : 'foto-andrea', dataUrl);
+          if (esYasmin) state.settings.yasminFoto = true;
+          else state.profile.foto = true;
+          save(); render();
+          toast(esYasmin ? 'Yasmin ya tiene su foto. Queda guardada solo en este dispositivo.' : 'Tu foto quedó guardada. Solo en este dispositivo.');
+        } catch (e) {
+          toast('No se pudo guardar la foto en este dispositivo.');
+        }
+      };
+      input.click();
+      break;
+    }
+
+    case 'foto-yasmin-quitar':
+    case 'foto-andrea-quitar': {
+      const esYasmin = target.dataset.action === 'foto-yasmin-quitar';
+      if (!confirm('¿Quitar esta foto? Se borra de este dispositivo.')) return;
+      fotoBorrar(esYasmin ? 'foto-yasmin' : 'foto-andrea').then(() => {
+        if (esYasmin) state.settings.yasminFoto = false;
+        else state.profile.foto = false;
+        save(); render();
+        toast('Foto quitada.');
+      });
       break;
     }
 

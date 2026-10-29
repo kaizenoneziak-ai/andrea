@@ -253,6 +253,36 @@ function yasminMemoriaLinea(topic = '') {
   return `${phrase}: «${fact.text}».`;
 }
 
+/* Yasmin comenta la frase de hoy conectándola con la semana real de Andrea. */
+function yasminFraseReply() {
+  const f = feElegida(ui.feOffset || 0);
+  const ins = careInsights(7);
+  const contexto = [];
+  if (ins.redDays >= 2) contexto.push('esta semana tuvo días pesados, y justamente la frase de hoy es de ' + (f.tema === 'fortaleza' ? 'fortaleza' : 'renacer') + ': no la elegí al azar');
+  else if (ins.greenDays >= 2) contexto.push('tu semana viene con días buenos, y la frase de hoy celebra eso');
+  else if (ins.hasData) contexto.push('tus registros de la semana van en paz, y la frase de hoy viene a acompañar eso');
+  else contexto.push('todavía estamos conociéndonos, y esta frase te la dedico desde hoy');
+  const comentarios = {
+    renacer: 'las mariposas pasan por un capullo antes de volar; esos días en los que no te ves avanzada son, muchas veces, el capullo',
+    fortaleza: 'las alas de una mariposa pesan casi nada y igual cruzan el mar; tú llevas meses cruzando el tuyo',
+    libertad: 'el capullo se abre solo, cuando la mariposa está lista; nada de lo que hoy aprieta va a ser eterno',
+    belleza: 'la mariposa no sabe que es hermosa, y aun así transforma todo lo que toca; tú haces lo mismo en tu casa',
+    fe: 'si Dios cuida el vuelo de las mariposas, imagínate con cuánto más cuidado acompaña tu paso de hoy'
+  };
+  return {
+    text: `La frase de hoy dice: «${f.frase}»
+
+${comentarios[f.tema] || ''}. ${contexto[0]}.
+
+Si la frase te tocó algo distinto, cuéntame con tus palabras — yo la leo contigo, no la interpreto sola.`,
+    chips: yasminChips(
+      { label: 'Guardar en Memoria', action: 'yasmin-chip', id: 'recuerda que mi frase de hoy me hizo pensar' },
+      { label: 'Otra frase', action: 'fe-otra-frase' },
+      { label: 'Respirar conmigo', action: 'respirar' }
+    )
+  };
+}
+
 function yasminPanoramaReply() {
   const p = careInsights(7);
   const chips = yasminChips(
@@ -921,6 +951,12 @@ function yasminPensar(texto) {
     };
   }
 
+  /* 2b. Frase del día: Yasmin razona la frase de la mariposa con la semana real */
+  if (yasminHas(t, 'frase de hoy', 'mi frase de hoy', 'cuentame de mi frase', 'cuéntame de mi frase', 'la frase de la mariposa', 'que significa mi frase')) {
+    yasminRemember({ topic: 'frase', mood: emotion.key || '', intent: 'frase', awaiting: '' });
+    return yasminFraseReply();
+  }
+
   /* 2c. Alegría: los días buenos también merecen conversación */
   if (yasminHas(t, 'me siento bien', 'me siento contenta', 'me siento feliz', 'me fue bien', 'me salio bien', 'me salió bien', 'estoy contenta', 'estoy feliz', 'estoy alegre', 'que felicidad', 'qué felicidad', 'logre ', 'lo logre', 'pude ', 'me dio risa', 'me hizo reir', 'me hizo reír', 'fue un buen dia', 'fue un buen día', 'hoy me fue bien', 'gracias a dios', 'gracias a dios me siento')) {
     yasminRemember({ topic: 'alegria', mood: 'calma', intent: 'alegria', awaiting: '' });
@@ -1351,11 +1387,12 @@ function chatBienvenida(nombre) {
   const mismoNombre = propio && normalizeText(propio) === normalizeText(nombre);
   const saludo = propio && !mismoNombre ? `, ${esc(propio)}` : '';
   const historia = personalHasData() ? ' Ya me has contado algo de tu historia; lo tengo presente.' : '';
-  return `<div class="msg yasmin">Hola${saludo}. Soy ${esc(nombre)}. Puedes escribirme como le escribirías a alguien que te quiere: sin ordenar las ideas, sin explicar nada bien.${historia}<span class="meta">ahora</span></div>`;
+  return `<div class="msg yasmin">${avatarYasmin(28)}<div class="msg-cuerpo">Hola${saludo}. Soy ${esc(nombre)}. Puedes escribirme como le escribirías a alguien que te quiere: sin ordenar las ideas, sin explicar nada bien.${historia}<span class="meta">ahora</span></div></div>`;
 }
 function chatMensajeHtml(m) {
   const role = m.role === 'ella' ? 'ella' : 'yasmin';
-  return `<div class="msg ${role}">${esc(m.text)}<span class="meta">${esc(horaCorta(m.at))}</span></div>`;
+  const avatar = role === 'yasmin' ? avatarYasmin(28) : '';
+  return `<div class="msg ${role}">${avatar}<div class="msg-cuerpo">${esc(m.text)}<span class="meta">${esc(horaCorta(m.at))}</span></div></div>`;
 }
 function renderChatLog(irAlFinal = true) {
   const log = document.getElementById('chat-log');

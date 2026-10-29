@@ -4,7 +4,7 @@ const LEGACY_KEY = 'alba_state_v1';
 /* Marca local del dispositivo: sirve para que la inducción se muestre en el
    teléfono aunque el respaldo importado diga que ya se vio en el PC. */
 const DEVICE_KEY = 'andrea_device_onboarded';
-const APP_VERSION = '0.6.2';
+const APP_VERSION = '0.7.0';
 const APP_NAME = 'Andrea';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -53,26 +53,39 @@ const MICRO_STEPS = [
 
 /* Frases de fe y ánimo: para Andrea, que cree en Dios, en las energías y en
    los milagros. Universal y opt-out: se apaga en Ajustes y no predica. */
+/* Frases del día con temas de mariposa: transformación, fortaleza,
+   libertad, belleza y fe. Yasmin las usa para acompañar según la semana. */
 const FE_FRASES = [
-  { frase: 'Hoy hay una fuerza que te sostiene, aunque no la veas.', cierre: 'Con fe, como siempre.' },
-  { frase: 'Tus energías hoy van a estar donde tú pongas tu intención. Ponla en ti.', cierre: 'Con calma y con fe.' },
-  { frase: 'Los milagros no siempre llegan de golpe: a veces llegan como un día tranquilo como este.', cierre: 'Bienvenido sea.' },
-  { frase: 'Lo que estás sembrando en ti, aunque no se vea, ya está creciendo.', cierre: 'Cosecha viene en camino.' },
-  { frase: 'Dios no te dio espíritu de miedo. Lo que sientes no te define; te atraviesa y pasa.', cierre: 'Pasa, como todo.' },
-  { frase: 'Eres guerrera desde antes de saberlo. Hoy también lo vas a demostrar.', cierre: 'Como toda la vida.' },
-  { frase: 'Un día bueno también cuenta como medicina. Déjalo entrar.', cierre: 'Merecido, por cierto.' },
-  { frase: 'Todo lo que has sobrevivido ya demostró que hay algo grande en ti.', cierre: 'Y sigue ahí.' },
-  { frase: 'Pídele a lo que tú le pides, y suéltalo. Soltar también es cuidarse.', cierre: 'Ya no carga sola.' },
-  { frase: 'Las cosas buenas también llegan sin avisar. Hoy deja la puerta abierta.', cierre: 'Con esperanza.' },
-  { frase: 'Tu cuerpo está cansado, pero tu alma sigue en pie. Eso no es poca cosa.', cierre: 'Es mucho, de hecho.' },
-  { frase: 'Nada de lo que te pasa te aparta de lo bueno que viene. Ninguna cosa.', cierre: 'Viene algo bueno.' },
-  { frase: 'Agradece lo que ya está: la cama, el sol, alguien que te quiere. Eso también suma.', cierre: 'Y suma bonito.' },
-  { frase: 'Hoy no tienes que ser fuerte para nadie. Solo seguir respirando y dejar que te cuiden.', cierre: 'Descansa en esa paz.' }
+  { tema: 'renacer', frase: 'Las mariposas no nacen volando: primero fueron oruga, luego capullo, y aún así llegaron a volar. Tu proceso también está volando en silencio.', cierre: 'Ya viene tu vuelo.' },
+  { tema: 'renacer', frase: 'Si hoy te sientes en el capullo, no es castigo: es que las alas se están formando.', cierre: 'Paciencia bonita.' },
+  { tema: 'renacer', frase: 'Renacer no es volver a ser la de antes: es llegar a ser alguien con más luz.', cierre: 'Y vas bien.' },
+  { tema: 'fe', frase: 'Dios no deja obras a medias. Lo que hoy parece pausa, en Él es preparación.', cierre: 'Confía.' },
+  { tema: 'fortaleza', frase: 'Una mariposa pesa menos que una pluma, y sin embargo cruza el mar. Tu fuerza no se mide en kilos.', cierre: 'La tuya cruza.' },
+  { tema: 'fortaleza', frase: 'Has cargado cosas que muchos no habrían cargado ni un día. Eso no se olvida: eso te define.', cierre: 'Guerrera.' },
+  { tema: 'fortaleza', frase: 'El temblor de tus manos no es debilidad: es el cuerpo de alguien que ha peleado de frente.', cierre: 'Sigue peleando suave.' },
+  { tema: 'fortaleza', frase: 'No tienes que ser fuerte todos los días. Las alas también descansan.', cierre: 'Descansa sin culpa.' },
+  { tema: 'libertad', frase: 'Ningún capullo retiene a la mariposa para siempre. Nada de lo que hoy te aprieta es eterno.', cierre: 'Se abre solo.' },
+  { tema: 'libertad', frase: 'La libertad también empieza adentro: un pensamiento más amable contigo es una puerta abierta.', cierre: 'Ábrela despacio.' },
+  { tema: 'libertad', frase: 'Volar no significa irse: significa poder ir a donde tú decidas, incluso a un día mejor.', cierre: 'Tú decides.' },
+  { tema: 'belleza', frase: 'Nadie le explica a la mariposa lo hermosa que es, y aun así florece donde posa. Tú también.', cierre: 'Florece.' },
+  { tema: 'belleza', frase: 'Hay belleza en un día hecho con calma: la cama tendida, el agua fresca, una llamada. Eso también es arte.', cierre: 'Tu arte diario.' },
+  { tema: 'belleza', frase: 'Lo que tú llamas normal, otra persona lo llamaría un milagro.', cierre: 'Milagrosa.' },
+  { tema: 'fe', frase: 'Las mariposas no ven sus propias alas: nosotros sí. Tu gente ve tu luz aunque tú no la sientas.', cierre: 'Nosotros la vemos.' },
+  { tema: 'fe', frase: 'Dios cuida hasta el vuelo de las mariposas. ¿Cuánto más no cuidará tu paso de hoy?', cierre: 'Cuidada siempre.' },
+  { tema: 'fe', frase: 'Cada vez que una mariposa cruce tu camino, recuérdalo: la transformación es real y ya empezó en ti.', cierre: 'Ya empezó.' }
 ];
-function feDelDia(offset = 0) {
-  const i = (dayOfYear() + offset) % FE_FRASES.length;
-  return FE_FRASES[i];
+
+/* La frase del día razona con los registros: si la semana viene difícil,
+   habla de renacer y fortaleza; si viene buena, celebra libertad y belleza. */
+function feElegida(offset = 0) {
+  const ins = careInsights(7);
+  let lista = FE_FRASES;
+  if (ins.redDays >= 2) lista = FE_FRASES.filter(f => f.tema === 'renacer' || f.tema === 'fortaleza');
+  else if (ins.greenDays >= 2) lista = FE_FRASES.filter(f => f.tema === 'libertad' || f.tema === 'belleza' || f.tema === 'fe');
+  const i = (dayOfYear() + offset) % lista.length;
+  return lista[i];
 }
+function feDelDia(offset = 0) { return feElegida(offset); }
 
 const PROMPTS = [
   '¿Qué necesito hoy que no me estoy dando?',
@@ -214,11 +227,26 @@ function icon(name, size = 20) {
 }
 
 /* Marca: sol que sale sobre una semilla — "cada día vuelve a empezar" */
+/* Avatares de perfil: la foto vive en IndexedDB ('foto-yasmin' / 'foto-andrea'),
+   hydrateFotos las carga tras cada render. Sin foto, Yasmin muestra su mariposa. */
+function avatarYasmin(size = 30) {
+  if (state && state.settings.yasminFoto) {
+    return `<img class="avatar-yasmin" data-foto="foto-yasmin" alt="Yasmin" style="width:${size}px;height:${size}px">`;
+  }
+  return `<span class="avatar-yasmin vacia" style="width:${size}px;height:${size}px" aria-hidden="true">🦋</span>`;
+}
+function avatarAndrea(size = 40) {
+  if (state && state.profile && state.profile.foto) {
+    return `<img class="avatar-andrea" data-foto="foto-andrea" alt="Mi foto" style="width:${size}px;height:${size}px">`;
+  }
+  const inicial = (state && (state.profile.displayName || state.profile.name) || 'A').trim().charAt(0).toUpperCase() || 'A';
+  return `<span class="avatar-andrea vacia" style="width:${size}px;height:${size}px" aria-hidden="true">${esc(inicial)}</span>`;
+}
 function brandMark(size = 40) {
   return `<svg width="${size}" height="${size}" viewBox="0 0 48 48" role="img" aria-label="${APP_NAME}">
     <defs>
       <linearGradient id="amanece" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#6E2C1F"/><stop offset=".55" stop-color="#A9502F"/><stop offset="1" stop-color="#C8963E"/>
+        <stop offset="0" stop-color="#1A5E4D"/><stop offset=".55" stop-color="#2E9B80"/><stop offset="1" stop-color="#D9A441"/>
       </linearGradient>
     </defs>
     <rect width="48" height="48" rx="15" fill="url(#amanece)"/>
@@ -423,7 +451,8 @@ function normalizeState(raw) {
     yasminLearn: true, yasminFactsUpdatedAt: '',
     agendaSignature: '', agendaExportAt: null,
     feEnabled: true,
-    registroReminder: '20:00'
+    registroReminder: '20:00',
+    yasminFoto: !!s.settings.yasminFoto
   }, s.settings || {});
   s.medications = Array.isArray(s.medications) ? s.medications : [];
   s.appointments = Array.isArray(s.appointments) ? s.appointments : [];
@@ -477,6 +506,7 @@ function normalizeState(raw) {
 
   s.medications.forEach(m => {
     m.id = m.id || uid('med');
+    m.emoji = String(m.emoji || '💊');
     m.schedule = Array.isArray(m.schedule) ? m.schedule : [];
     m.schedule.forEach(slot => { slot.id = slot.id || uid('h'); });
     m.active = m.active !== false;

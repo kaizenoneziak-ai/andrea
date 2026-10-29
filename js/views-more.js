@@ -104,7 +104,7 @@ Object.assign(views, {
       ${hoy ? `<div class="momento-card" style="margin-bottom:20px">
         ${hoy.photoId ? `<img data-foto="${esc(hoy.photoId)}" alt="Recuerdo de ${esc(hoy.from || 'tu familia')}">` : `<div class="no-photo">${icon('gift', 54)}</div>`}
         <div class="body">
-          <div class="eyebrow" style="color:#F0C98F">El momento de hoy</div>
+          <div class="eyebrow" style="color:#F4D998">El momento de hoy</div>
           <blockquote>${esc(hoy.text || '')}</blockquote>
           <div class="from">— ${esc(hoy.from || 'Tu familia')}${hoy.relation ? ' · ' + esc(hoy.relation) : ''}</div>
           <div class="form-actions">
@@ -125,8 +125,8 @@ Object.assign(views, {
 
       <div class="divider"></div>
       ${card(`<div class="card-head"><div><h2>Cómo funcionan</h2></div></div>
-        <p class="small">Tu familia agrega fotos, frases o recuerdos desde aquí. Andrea te los muestra uno por uno, y si tienes los avisos activos, te llega uno en los momentos del día que elijas.</p>
-        <p class="small">Si quieres que el recordatorio te encuentre aunque estés en otra aplicación, descárgalo al calendario del teléfono. El evento solo dice «Un momento para ti»: no incluye el texto, las fotos ni datos de salud.</p>
+        <p class="small">Aquí vive tu gente: fotos y palabras que llegan como sorpresas.</p>
+        <p class="small">Para que suene siempre, descárgalo al calendario del teléfono. El evento solo dice «Un momento para ti»: no incluye el texto, las fotos ni datos de salud.</p>
         <div class="form-actions"><button class="btn small primary" data-action="download-momentos-ics">${icon('calendar', 15)} Agregar recordatorios al calendario</button></div>
         <p class="tiny muted">Las fotos se guardan solo en este dispositivo, comprimidas. Nada se sube a Internet.</p>`)}`;
   },
@@ -157,7 +157,7 @@ Object.assign(views, {
         ${card(`<div class="card-head"><div><h2>Razones para quedarme</h2><div class="sub">Las escribes tú, no la familia.</div></div></div>${reasons.length ? `<ul class="plan-list">${reasons.map((x, i) => `<li><span class="n">${i + 1}</span><span>${esc(x)}</span></li>`).join('')}</ul>` : `<div class="empty"><strong>Aún no has escrito tus razones</strong><span>No tienes que hacerlo hoy. Cuando puedas, escribe una razón pequeña: una persona, una mascota, algo que quieras ver o terminar.</span></div>`}<p class="tiny muted" style="margin-top:10px">Puedes cambiarlas cuando quieras en el plan de abajo.</p>`)}
       </div>
       <div id="mi-red"></div>
-      ${card(`<div class="card-head"><div><h2>Mi red de apoyo</h2><div class="sub">Con nombre y teléfono. En crisis no se improvisa.</div></div><button class="link-btn" data-action="add-contact">Agregar</button></div>
+      ${card(`<div class="card-head"><div><h2>💛 Mi red de apoyo</h2><div class="sub">Con nombre y teléfono. En crisis no se improvisa.</div></div><button class="link-btn" data-action="add-contact">Agregar</button></div>
         <div class="stack">${state.contacts.map(c => `<div class="between" style="padding:8px 0;border-bottom:1px solid var(--line)"><div><strong>${esc(c.name)}</strong><div class="tiny muted">${esc(c.role || '')}${c.notes ? ' · ' + esc(c.notes) : ''}</div></div><div class="row">${c.phone ? `<a class="btn tiny" href="${phoneHref(c.phone)}">${icon('phone', 13)} Llamar</a>${waHref(c.phone) ? `<a class="btn tiny ghost" href="${waHref(c.phone)}" target="_blank" rel="noopener" aria-label="WhatsApp a ${esc(c.name)}">${icon('chat', 13)} WhatsApp</a>` : ''}` : ''}<button class="btn tiny ghost" data-action="edit-contact" data-id="${esc(c.id)}">Editar</button></div></div>`).join('')}</div>`)}
       ${card(`<div class="card-head"><div><h2>Resguardar el entorno</h2><div class="sub">Acordado contigo y con tu equipo, no impuesto.</div></div></div><ul class="plan-list">${(sp.means || []).map((x, i) => `<li><span class="n">${i + 1}</span><span>${esc(x)}</span></li>`).join('')}</ul>`)}
       ${card(`<div class="card-head"><div><h2>Editar mi plan</h2><div class="sub">Una línea por idea. Revísalo con tu psicólogo/a o psiquiatra.</div></div></div>
@@ -181,7 +181,7 @@ Object.assign(views, {
     const ins = careInsights(7);
     const consejo = aprendeConsejoPersonal(ins);
     return `
-      <div class="hero" style="background:linear-gradient(135deg,#3F2B3C,#6B4E63 60%,#8E3B26);padding:26px 28px">
+      <div class="hero" style="background:linear-gradient(135deg,#1E4D42,#7B6FA0 60%,#1F7A63);padding:26px 28px">
         <div class="hero-copy"><div class="eyebrow">Cápsulas de 2 minutos</div><h1 style="font-size:1.8rem">Entender también calma.</h1><p>Información educativa para ti y para la familia. No reemplaza a tu equipo de salud. Cada día abre una cápsula distinta.</p></div>
         <div class="hero-sun">${brandMark(190)}</div>
       </div>
@@ -377,7 +377,11 @@ Object.assign(views, {
     const backupTone = backupDays === null || backupDays > 14 ? 'info' : 'success';
     return `
       <div class="grid grid-2">
-        ${card(`<div class="card-head"><div><h2>Perfil</h2><div class="sub">Solo lo necesario. Puedes dejar campos en blanco.</div></div></div>
+        ${card(`<div class="card-head"><div><h2>🪞 Perfil</h2><div class="sub">Solo lo necesario. Puedes dejar campos en blanco.</div></div></div>
+          <div class="perfil-avatar-row">
+            <button class="perfil-avatar" type="button" data-action="foto-andrea-cambiar" aria-label="Cambiar mi foto">${avatarAndrea(72)}<span class="perfil-avatar-cam">${icon('photo', 15)}</span></button>
+            <div class="tiny muted" style="flex:1">Tu foto se ve solo en este dispositivo. ${state.profile.foto ? `<button class="link-btn tiny" data-action="foto-andrea-quitar">Quitar mi foto</button>` : 'Toca la foto para ponerla.'}</div>
+          </div>
           <form data-form="profile" class="form-grid">
             <div class="form-grid two">${textInput('name', 'Nombre completo', p.name)}${textInput('displayName', 'Cómo quieres que te llamen', p.displayName)}</div>
             <div class="form-grid two">${numberField('age', 'Edad', p.age, 0, 120)}${textInput('startDate', 'Fecha de inicio del plan', p.startDate, 'date')}</div>
@@ -396,7 +400,7 @@ Object.assign(views, {
           <form data-form="times" class="form-grid">
             <div class="form-grid three">${textInput('morning', 'Mañana', s.morning, 'time')}${textInput('afternoon', 'Tarde', s.afternoon, 'time')}${textInput('night', 'Noche', s.night, 'time')}</div>
             <div class="form-actions"><button class="btn primary" type="submit">Guardar horarios</button><button class="btn small ghost" type="button" data-action="apply-times">Aplicar a todos</button></div>
-            <p class="tiny muted">«Aplicar a todos» reemplaza los horarios 07:00, 15:00 y 23:00 de tus medicamentos. Úsalo solo si estás segura.</p>
+            <p class="tiny muted">«Aplicar a todos» reemplaza los horarios de tus medicamentos. Úsalo solo si estás segura.</p>
           </form>
           <div class="divider"></div>
           <div class="between"><div><strong>Avisos</strong><div class="tiny muted">Tomas y momentos. Solo con Andrea abierta o instalada.</div></div><span class="badge ${s.notifications ? 'success' : 'info'}">${s.notifications ? 'Activos' : 'Apagados'}</span></div>
@@ -404,7 +408,11 @@ Object.assign(views, {
       </div>
 
       <div class="grid grid-2">
-        ${card(`<div class="card-head"><div><h2>Yasmin, tu compañera</h2><div class="sub">Cómo quieres que te hable.</div></div>${badge(personalHasData() ? 'Conoce tu historia' : 'Aún sin historia', personalHasData() ? 'success' : 'info')}</div>
+        ${card(`<div class="card-head"><div><h2>🦋 Yasmin, tu compañera</h2><div class="sub">Cómo quieres que te hable.</div></div>${badge(personalHasData() ? 'Conoce tu historia' : 'Aún sin historia', personalHasData() ? 'success' : 'info')}</div>
+          <div class="perfil-avatar-row">
+            <button class="perfil-avatar" type="button" data-action="foto-yasmin-cambiar" aria-label="Cambiar la foto de Yasmin">${avatarYasmin(72)}<span class="perfil-avatar-cam">${icon('photo', 15)}</span></button>
+            <div class="tiny muted" style="flex:1">La foto de Yasmin en el chat. ${state.settings.yasminFoto ? `<button class="link-btn tiny" data-action="foto-yasmin-quitar">Quitar foto</button>` : 'Toca para ponerle su foto (o deja su mariposa).'}</div>
+          </div>
           <form data-form="yasmin-settings" class="form-grid">
             ${textInput('yasminName', 'Cómo se llama tu compañera', s.yasminName || 'Yasmin')}
             ${selectField('tone', 'Su forma de hablar', s.yasminTone || 'cercano', [
@@ -475,11 +483,11 @@ Object.assign(views, {
         <p class="tiny muted">Los avisos programados necesitan la app abierta o instalada y permiso del navegador. Para alarmas que suenen siempre, usa el calendario del teléfono.</p>`)}
 
       ${card(`<div class="card-head"><div><h2>Andrea en tu celular</h2><div class="sub">Para llevarla contigo, sin depender del computador.</div></div>${badge(appInstalada() ? 'Instalada' : 'En el navegador', appInstalada() ? 'success' : 'info')}</div>
-        <p class="small">Instalada como aplicación, Andrea queda con su propio ícono, abre sin barra del navegador y funciona sin conexión. En iPhone es la única forma de recibir avisos.</p>
+        <p class="small">Con su propio ícono, sin barra del navegador y funcionando sin conexión. En iPhone es la única forma de recibir avisos.</p>
         <div class="form-actions"><button class="btn primary small" data-action="instalar-app" ${appInstalada() ? 'hidden' : ''}>${icon('download', 15)} Instalar Andrea</button><button class="btn small ghost" data-action="test-notification">Probar un aviso</button></div>
         <p class="tiny muted">Tus datos se quedan en el teléfono. Instalar no los sube a ninguna parte.</p>`)}
 
-      ${card(`<div class="card-head"><div><h2>Datos y respaldo</h2><div class="sub">${kb} KB en este dispositivo</div></div>${badge(backupLabel, backupTone)}</div>
+      ${card(`<div class="card-head"><div><h2>🧺 Datos y respaldo</h2><div class="sub">${kb} KB en este dispositivo</div></div>${badge(backupLabel, backupTone)}</div>
         <p class="tiny muted">Último respaldo: ${s.lastBackup ? esc(formatDate(localDateISO(s.lastBackup))) : 'nunca'}. ${backupDays !== null && backupDays > 14 ? 'Ya pasaron más de dos semanas; vale la pena guardar uno hoy. ' : ''}Exporta con frecuencia y guarda el archivo en un lugar seguro. Las fotos de Momentos no van dentro del JSON: se quedan en el teléfono.</p>
         <div class="form-actions"><button class="btn primary small" data-action="export-json">${icon('download', 15)} Exportar respaldo</button><button class="btn small" data-action="import-json">${icon('upload', 15)} Importar</button></div>
         <input type="file" id="import-file" accept="application/json,.json" class="hidden" data-action="import-file">

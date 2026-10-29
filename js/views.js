@@ -57,7 +57,7 @@ function doseRowCompact(d, date) {
   const status = doseStatus(date, d.key);
   return `<div class="dose-row ${status}">
     <button class="dose-check ${status}" data-action="toggle-dose" data-date="${date}" data-key="${esc(d.key)}" aria-label="${status === 'taken' ? 'Desmarcar' : 'Marcar como tomada'} ${esc(d.med.name)}">${status === 'taken' ? icon('check', 15) : ''}</button>
-    <div class="dose-info"><strong>${esc(d.med.name)} <span class="muted">${esc(d.med.strength || '')}</span></strong><span>${esc(d.amount)} · ${esc(d.time)}</span></div>
+    <div class="dose-info"><strong>${esc(d.med.emoji || '💊')} ${esc(d.med.name)} <span class="muted">${esc(d.med.strength || '')}</span></strong><span>${esc(d.amount)} · ${esc(d.time)}</span></div>
     <span class="dose-status">${status === 'taken' ? 'Tomada' : status === 'skipped' ? 'Omitida' : ''}</span>
   </div>`;
 }
@@ -68,7 +68,7 @@ function doseRowFull(d, date) {
   return `<div class="dose-row full ${status}">
     <div class="dose-time">${esc(d.time)}</div>
     <div class="dose-main">
-      <div class="dose-title">${esc(d.med.name)} ${esc(d.med.strength || '')}</div>
+      <div class="dose-title">${esc(d.med.emoji || '💊')} ${esc(d.med.name)} ${esc(d.med.strength || '')}</div>
       <div class="dose-sub">${esc(d.amount)} · ${esc(d.dose || '')}</div>
       <div class="dose-note">${esc(d.med.instructions || '')}</div>
       ${status === 'skipped' && rec.reason ? `<div class="dose-skip">Omitida: ${esc(rec.reason)}</div>` : ''}
@@ -112,8 +112,8 @@ function chart(days, series, opts = {}) {
   const y = v => h - padY - (v / max) * (h - padY * 2);
   let grid = '';
   for (let v = 0; v <= max; v += step) {
-    grid += `<line x1="${padX}" y1="${y(v)}" x2="${w - padX}" y2="${y(v)}" stroke="#E8DBCB" stroke-width="1"/>`;
-    grid += `<text x="${padX - 8}" y="${y(v) + 3}" text-anchor="end" font-size="10" fill="#6E5B50">${v}</text>`;
+    grid += `<line x1="${padX}" y1="${y(v)}" x2="${w - padX}" y2="${y(v)}" stroke="#D6E8DF" stroke-width="1"/>`;
+    grid += `<text x="${padX - 8}" y="${y(v) + 3}" text-anchor="end" font-size="10" fill="#5F7C73">${v}</text>`;
   }
   let paths = '';
   series.forEach(s => {
@@ -125,7 +125,7 @@ function chart(days, series, opts = {}) {
   });
   const labels = days.map((d, i) => {
     if (n > 10 && i % 3 !== 0 && i !== n - 1) return '';
-    return `<text x="${x(i)}" y="${h - 5}" text-anchor="middle" font-size="9" fill="#6E5B50">${esc(formatShort(d.date))}</text>`;
+    return `<text x="${x(i)}" y="${h - 5}" text-anchor="middle" font-size="9" fill="#5F7C73">${esc(formatShort(d.date))}</text>`;
   }).join('');
   return `<div class="chart-wrap"><svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(opts.label || 'Gráfica de seguimiento')}">${grid}${paths}${labels}</svg></div>
     <div class="chart-legend">${series.map(s => `<span><i class="legend-dot" style="background:${s.color}"></i>${esc(s.label)}</span>`).join('')}</div>`;
@@ -135,7 +135,7 @@ function ring(pct, label = 'hoy') {
   const off = c * (1 - Math.max(0, Math.min(100, pct)) / 100);
   return `<div class="ring" role="img" aria-label="${pct}% de ${label}">
     <svg viewBox="0 0 86 86">
-      <defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8E3B26"/><stop offset="1" stop-color="#C8963E"/></linearGradient></defs>
+      <defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1F7A63"/><stop offset="1" stop-color="#D9A441"/></linearGradient></defs>
       <circle class="track" cx="43" cy="43" r="${r}" fill="none" stroke-width="8"/>
       <circle class="bar" cx="43" cy="43" r="${r}" fill="none" stroke-width="8" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/>
     </svg>
@@ -164,7 +164,7 @@ function checklistCard() {
   const checkin = items.find(i => i.group === 'checkin');
   const faltan = items.filter(i => !i.done).length;
   const tomadas = meds.filter(i => i.done && !i.skipped).length;
-  return card(`<div class="card-head"><div><h2>Tu checklist de hoy</h2><div class="sub">Lo básico, no una prueba.</div></div>${ring(pct, 'cumplido')}</div>
+  return card(`<div class="card-head"><div><h2>✅ Tu checklist de hoy</h2><div class="sub">Lo básico, no una prueba.</div></div>${ring(pct, 'cumplido')}</div>
     <div class="progress"><span style="width:${pct}%"></span></div>
     <p class="small" style="margin-top:10px">${done} de ${total} cosas. ${faltan ? 'Lo que falta no es una deuda: es lo próximo.' : 'Hoy cumpliste lo básico. No es poco.'}</p>
     <div class="checklist-list">
@@ -175,6 +175,19 @@ function checklistCard() {
       ${checkin ? `<div class="checklist-group"><div class="checklist-group-head"><strong>Tu voz</strong></div>${checklistRowHtml(checkin)}</div>` : ''}
     </div>
     <div class="form-actions"><button class="btn small ghost" data-action="minimum">Modo mínimo</button><button class="btn small" data-action="nav" data-id="medicamentos">Ver mis tomas</button></div>`, 'checklist-card');
+}
+
+/* La frase del día: el momento con foco de Hoy. Mariposa = transformación. */
+function fraseCard() {
+  if (state.settings.feEnabled === false) return '';
+  const f = feElegida(ui.feOffset || 0);
+  const temas = { renacer: 'Renacer', fortaleza: 'Tu fortaleza', libertad: 'Tu libertad', belleza: 'Tu belleza', fe: 'Tu fe' };
+  return `<section class="fe-hero" aria-label="Frase del día">
+    <div class="fe-hero-top"><span class="fe-mariposa">🦋</span><div><div class="fe-kicker">Frase de hoy · ${temas[f.tema] || 'Para ti'}</div><div class="fe-sub">${esc(f.tema === 'fe' ? 'Tu momentito de fe' : 'Como las mariposas')}</div></div></div>
+    <p class="fe-frase">${esc(f.frase)}</p>
+    <p class="fe-cierre">${esc(f.cierre)}</p>
+    <div class="form-actions"><button class="btn small solid-fe" data-action="hablar-frase">Hablar de esta frase con Yasmin</button><button class="btn small ghost" data-action="fe-otra">Otra frase</button><button class="link-btn" data-action="toggle-fe">No mostrar esto</button></div>
+  </section>`;
 }
 
 /* ---------- Hoy ---------- */
@@ -222,7 +235,7 @@ views.hoy = function () {
     ${proxima ? `<div class="next-dose">
       <div class="hour">${esc(proxima.time)}</div>
       <div class="who">
-        <strong>${esc(proxima.med.name)} ${esc(proxima.med.strength || '')}</strong>
+        <strong>${esc(proxima.med.emoji || '💊')} ${esc(proxima.med.name)} ${esc(proxima.med.strength || '')}</strong>
         <span>${esc(proxima.amount)} · ${doseStatus(today, proxima.key) === 'pending' ? 'pendiente' : 'registrada'}</span>
       </div>
       <button class="btn primary" data-action="toggle-dose" data-date="${today}" data-key="${esc(proxima.key)}">Ya la tomé</button>
@@ -263,7 +276,7 @@ views.hoy = function () {
     ${momento ? `<div class="momento-card" style="cursor:pointer" data-action="abrir-momento" data-id="${esc(momento.id)}">
       ${momento.photoId ? `<img data-foto="${esc(momento.photoId)}" alt="Recuerdo de ${esc(momento.from || 'tu familia')}">` : `<div class="no-photo">${icon('gift', 54)}</div>`}
       <div class="body">
-        <div class="eyebrow" style="color:#F0C98F">Un momento para ti</div>
+        <div class="eyebrow" style="color:#F4D998">Un momento para ti</div>
         <blockquote>${esc(momento.text || '')}</blockquote>
         <div class="from">— ${esc(momento.from || 'Tu familia')}${momento.relation ? ' · ' + esc(momento.relation) : ''}</div>
         <div class="form-actions"><button class="btn tiny" data-action="abrir-momento" data-id="${esc(momento.id)}">Verlo completo</button></div>
@@ -272,9 +285,11 @@ views.hoy = function () {
       <p class="small">Este espacio queda esperando. Cuando esté lista la carpeta de recuerdos, aquí vivirán las fotos y las palabras de tu gente.</p>
       <div class="form-actions"><button class="btn small ghost" data-action="nav" data-id="momentos">Ver Momentos</button></div>`)}
 
+    ${fraseCard()}
+
     <div class="grid grid-2">
-      ${card(`<div class="card-head"><div><h2>¿Cómo está tu día?</h2><div class="sub">Un color, no una nota.</div></div></div>${trafficBlock(day)}`)}
-      ${card(`<div class="card-head"><div><h2>Registro de hoy</h2><div class="sub">${c.at ? 'Guardado a las ' + new Date(c.at).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '60 segundos para saber cómo estás.'}</div></div>${c.at ? badge('Guardado', 'success') : ''}</div>
+      ${card(`<div class="card-head"><div><h2>🌤️ ¿Cómo está tu día?</h2><div class="sub">Un color, no una nota.</div></div></div>${trafficBlock(day)}`)}
+      ${card(`<div class="card-head"><div><h2>💭 Registro de hoy</h2><div class="sub">${c.at ? 'Guardado a las ' + new Date(c.at).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '60 segundos para saber cómo estás.'}</div></div>${c.at ? badge('Guardado', 'success') : ''}</div>
         <form data-form="quick-checkin">
           <div class="quick-grid">
             ${rangeField('mood', 'Ánimo', c.mood, 0, 10, 'Bajo', 'Alto', 5)}
@@ -288,15 +303,15 @@ views.hoy = function () {
     </div>
 
     <div class="grid grid-2">
-      ${card(`<div class="card-head"><div><h2>Yasmin te espera</h2><div class="sub">Compañía para hablar de lo que sea.</div></div>${badge('En línea', 'success')}</div>
-        <p class="small">Puedes contarle cómo te sientes, preguntarle por tus pastillas o pedirle que respire contigo. No juzga y no se cansa.</p>
+      ${card(`<div class="card-head"><div><h2>🦋 Yasmin te espera</h2><div class="sub">Compañía para hablar de lo que sea.</div></div>${badge('En línea', 'success')}</div>
+        <p class="small">Cuenta cómo vas, pregunta por tus pastillas o pídele respirar contigo.</p>
         <div class="form-actions"><button class="btn primary small" data-action="open-yasmin">Hablar ahora</button><button class="btn small ghost" data-action="yasmin-sugerencia">Sorpréndeme</button></div>`)}
-      ${card(`<div class="card-head"><div><h2>Próxima cita</h2><div class="sub">Lo que toca agendar o recordar.</div></div><div class="row"><button class="link-btn" data-action="view-agenda">Agenda</button><button class="link-btn" data-action="nav" data-id="citas">Ver todas</button></div></div>
+      ${card(`<div class="card-head"><div><h2>📅 Próxima cita</h2><div class="sub">Lo que toca agendar o recordar.</div></div><div class="row"><button class="link-btn" data-action="view-agenda">Agenda</button><button class="link-btn" data-action="nav" data-id="citas">Ver todas</button></div></div>
         ${next ? apptCard(next, true) : emptyBox('Aún no hay citas', 'Agenda psiquiatría, psicología y fisiatría.')}`)}
     </div>
 
     <div class="grid grid-2">
-      ${card(`<div class="card-head"><div><h2>Tus tomas de hoy</h2><div class="sub">El detalle está en tu checklist de arriba.</div></div>${ring(pct, 'tomado')}</div>
+      ${card(`<div class="card-head"><div><h2>💊 Tus tomas de hoy</h2><div class="sub">El detalle está en tu checklist de arriba.</div></div>${ring(pct, 'tomado')}</div>
         <div class="stat-grid">
           <div class="stat"><div class="value">${taken}</div><div class="label">Tomadas</div></div>
           <div class="stat"><div class="value">${skipped}</div><div class="label">Omitidas</div></div>
@@ -305,27 +320,23 @@ views.hoy = function () {
         </div>
         <div class="form-actions"><button class="btn small" type="button" data-action="nav" data-id="medicamentos">Ver todos</button><button class="btn small ${state.settings.icsAt ? 'ghost' : 'primary'}" type="button" data-action="download-ics">${icon('download', 14)} Alarmas</button></div>
         ${state.settings.icsAt ? '' : `<p class="tiny" data-alarmas-pendientes style="margin-top:9px;color:var(--primary)"><strong>Para que suenen aunque Andrea esté cerrada:</strong> descarga las alarmas y ábrelas en el calendario del teléfono.</p>`}`)}
-      ${card(`<div class="card-head"><div><h2>Un paso pequeño</h2><div class="sub">1% mejor, sin prisa.</div></div>${day.micro ? badge('Hecho', 'success') : ''}</div>
+      ${card(`<div class="card-head"><div><h2>🐣 Un paso pequeño</h2><div class="sub">1% mejor, sin prisa.</div></div>${day.micro ? badge('Hecho', 'success') : ''}</div>
         <p style="font-family:var(--font-display);font-size:1.12rem;line-height:1.45;margin:4px 0 12px">${esc(micro)}</p>
         <div class="form-actions"><button class="btn small primary" data-action="micro-done">${day.micro ? 'Hecho hoy' : 'Marcar como hecho'}</button><button class="btn small ghost" data-action="micro-next">Otro paso</button></div>`)}
     </div>
 
     <div class="grid grid-2">
-      ${card(`<div class="card-head"><div><h2>Lo bueno de hoy</h2><div class="sub">Tres cosas pequeñas. El día bueno también se guarda.</div></div>${(day.win || (day.gracias || []).filter(Boolean).length) ? badge('Guardado', 'success') : ''}</div>
+      ${card(`<div class="card-head"><div><h2>🌱 Lo bueno de hoy</h2><div class="sub">Tres cosas pequeñas. El día bueno también se guarda.</div></div>${(day.win || (day.gracias || []).filter(Boolean).length) ? badge('Guardado', 'success') : ''}</div>
         <form data-form="bueno">
           <input name="win" value="${esc(day.win || '')}" placeholder="1. Algo que salió bien (aunque sea mínimo)">
           <input name="gracias1" value="${esc((day.gracias || [])[0] || '')}" placeholder="2. Alguien o algo que te dio calma" style="margin-top:8px">
           <input name="gracias2" value="${esc((day.gracias || [])[1] || '')}" placeholder="3. Algo tuyo que hoy reconoces" style="margin-top:8px">
           <div class="form-actions"><button class="btn small primary" type="submit">Guardar lo bueno</button></div>
         </form>`)}
-      ${card(`<div class="card-head"><div><h2>Mi red</h2><div class="sub">Pedir compañía también es cuidarse.</div></div><button class="link-btn" data-action="nav" data-id="seguridad">Ver plan</button></div>
+      ${card(`<div class="card-head"><div><h2>💛 Mi red</h2><div class="sub">Pedir compañía también es cuidarse.</div></div><button class="link-btn" data-action="nav" data-id="seguridad">Ver plan</button></div>
         ${contacts.length ? contacts.map(ct => `<div class="between" style="padding:7px 0;border-bottom:1px solid var(--line)"><div><strong style="font-size:.88rem">${esc(ct.name)}</strong><div class="tiny muted">${esc(ct.role || '')}</div></div>${ct.phone ? `<a class="btn tiny" href="${phoneHref(ct.phone)}">${icon('phone', 13)} Llamar</a>${waHref(ct.phone) ? `<a class="btn tiny ghost" href="${waHref(ct.phone)}" target="_blank" rel="noopener" aria-label="WhatsApp a ${esc(ct.name)}">${icon('chat', 13)} WhatsApp</a>` : ''}` : `<span class="tiny muted">Sin teléfono</span>`}</div>`).join('') : emptyBox('Completa tu red', 'Agrega al menos dos personas de confianza.')}`)}
     </div>
 
-    ${state.settings.feEnabled === false ? '' : card(`<div class="card-head"><div><h2>Tu momentito de fe</h2><div class="sub">Las energías de siempre, a tu alcance.</div></div></div>
-      <p style="font-family:var(--font-display);font-size:1.12rem;line-height:1.45;margin:4px 0 8px">${esc(feDelDia(ui.feOffset || 0).frase)}</p>
-      <p class="small muted" style="margin-bottom:10px">${esc(feDelDia(ui.feOffset || 0).cierre)}</p>
-      <div class="form-actions"><button class="btn small ghost" data-action="fe-otra">Otra frase</button><button class="link-btn" data-action="toggle-fe">No mostrar esto</button></div>`)}
     `;
 };
 
@@ -351,7 +362,7 @@ function medsToday() {
   const labels = { '07:00': 'Mañana', '15:00': 'Tarde', '23:00': 'Noche' };
   return `
     <div class="grid grid-2">
-      ${card(`<div class="card-head"><div><h2>Hoy</h2><div class="sub">${formatLongDate(today)}</div></div>${badge(stats.pct == null ? 'Sin datos' : stats.pct + '% en 7 días', 'info')}</div>
+      ${card(`<div class="card-head"><div><h2>💊 Hoy</h2><div class="sub">${formatLongDate(today)}</div></div>${badge(stats.pct == null ? 'Sin datos' : stats.pct + '% en 7 días', 'info')}</div>
         <div class="progress"><span style="width:${pctHoy}%"></span></div>
         <div class="stat-grid">
           <div class="stat"><div class="value">${tomadasHoy}</div><div class="label">Tomadas</div></div>
@@ -360,8 +371,8 @@ function medsToday() {
           <div class="stat"><div class="value">${doses.length}</div><div class="label">Total</div></div>
         </div>
         <p class="tiny muted" style="margin-top:10px">${pctHoy}% de las tomas de hoy. El porcentaje de arriba es el de los últimos 7 días. La adherencia es un dato, no una nota.</p>`)}
-      ${card(`<div class="card-head"><div><h2>Alarmas y calendario</h2><div class="sub">La opción más confiable en cualquier teléfono.</div></div></div>
-        <p class="small">Descarga tus horarios como eventos con alarma y agrégalos al calendario del teléfono. Suenan aunque Andrea esté cerrada.</p>
+      ${card(`<div class="card-head"><div><h2>⏰ Alarmas y calendario</h2><div class="sub">La opción más confiable en cualquier teléfono.</div></div></div>
+        <p class="small">Descárgalos al calendario del teléfono: suenan aunque Andrea esté cerrada.</p>
         <div class="form-actions"><button class="btn primary small" data-action="download-ics">Descargar .ics con nombres</button><button class="btn small" data-action="download-ics-discreet">Descargar discreto</button></div>
         <div class="divider"></div>
         <p class="tiny muted">Los avisos de la app solo funcionan con Andrea abierta o instalada. No los uses como única alarma.</p>`)}
@@ -369,7 +380,7 @@ function medsToday() {
     <div class="divider"></div>
     ${doses.length ? Object.keys(groups).sort().map(time => `<div class="time-group"><div class="time-label"><strong>${esc(time)}</strong><span>${labels[time] || 'Toma'}</span></div>${groups[time].map(d => doseRowFull(d, today)).join('')}</div>`).join('') : emptyBox('No hay tomas para hoy', 'Revisa que tus medicamentos estén activos y con horario.')}
     <div class="grid grid-2">
-      ${card(`<div class="card-head"><div><h2>Si se te pasó una toma</h2></div></div><p class="small">No tomes el doble. Anota lo que pasó y consulta con tu médico o farmacéutico. Si es una dosis crítica, llama.</p><div class="form-actions"><button class="btn small" data-action="add-effect">Registrar efecto o novedad</button></div>`)}
+      ${card(`<div class="card-head"><div><h2>🤍 Si se te pasó una toma</h2></div></div><p class="small">No tomes el doble. Anota lo que pasó y consulta con tu médico o farmacéutico. Si es una dosis crítica, llama.</p><div class="form-actions"><button class="btn small" data-action="add-effect">Registrar efecto o novedad</button></div>`)}
       ${card(`<div class="card-head"><div><h2>Efectos recientes</h2><div class="sub">Para llevar a la consulta.</div></div><button class="link-btn" data-action="add-effect">Agregar</button></div>
         ${recentEffects.length ? recentEffects.map(e => `<div class="between" style="padding:6px 0;border-bottom:1px solid var(--line)"><div><strong style="font-size:.86rem">${esc(e.symptom)}</strong><div class="tiny muted">${esc(formatShort(e.date))} · intensidad ${esc(e.severity)}/10</div></div><button class="link-btn tiny" data-action="delete-effect" data-id="${esc(e.id)}">Quitar</button></div>`).join('') : emptyBox('Sin efectos registrados', 'Anota somnolencia, mareo, náuseas o cualquier cambio.')}`)}
     </div>`;
@@ -443,7 +454,7 @@ views.ejercicios = function () {
   const after = logs.map(x => x.painAfter).filter(v => typeof v === 'number');
   const avg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length * 10) / 10 : null;
   return `
-    <div class="hero" style="background:linear-gradient(135deg,#3F2B3C,#6B4E63 55%,#A9502F);padding:26px 28px">
+    <div class="hero" style="background:linear-gradient(135deg,#1E4D42,#7B6FA0 55%,#2E9B80);padding:26px 28px">
       <div class="hero-copy"><div class="eyebrow">Plan casero de fisioterapia</div><h1 style="font-size:1.8rem">Moverse también es cuidarse.</h1><p>Constancia, no velocidad. Si un ejercicio te duele o aumenta los síntomas, detente y consulta.</p></div>
       <div class="hero-sun">${brandMark(190)}</div>
     </div>
@@ -513,10 +524,10 @@ views.registro = function () {
       ${card(`<div class="card-head"><div><h2>Últimos 14 días</h2><div class="sub">Tendencias, no perfección.</div></div></div>
         ${hasData ? chart(series, [
           { key: 'mood', label: 'Ánimo', color: '#5E7F6B' },
-          { key: 'anxiety', label: 'Ansiedad', color: '#A9502F' },
-          { key: 'pain', label: 'Dolor', color: '#6B4E63' }
+          { key: 'anxiety', label: 'Ansiedad', color: '#2E9B80' },
+          { key: 'pain', label: 'Dolor', color: '#7B6FA0' }
         ], { max: 10, label: 'Ánimo, ansiedad y dolor en los últimos 14 días' }) : emptyBox('Aún no hay datos', 'Haz tu primer registro para ver la tendencia.')}
-        ${sleepData ? `<div class="divider"></div><h3 style="font-size:1rem;margin-bottom:8px">Sueño (horas)</h3>${chart(series, [{ key: 'sleepHours', label: 'Horas de sueño', color: '#4E6E8C' }], { max: 12, step: 3, label: 'Horas de sueño en los últimos 14 días' })}` : ''}
+        ${sleepData ? `<div class="divider"></div><h3 style="font-size:1rem;margin-bottom:8px">Sueño (horas)</h3>${chart(series, [{ key: 'sleepHours', label: 'Horas de sueño', color: '#4A7FA5' }], { max: 12, step: 3, label: 'Horas de sueño en los últimos 14 días' })}` : ''}
         <div class="divider"></div>
         <div class="stat-grid"><div class="stat"><div class="value">${avgCheckin(7, 'mood') ?? '—'}</div><div class="label">Ánimo 7d</div></div><div class="stat"><div class="value">${avgCheckin(7, 'anxiety') ?? '—'}</div><div class="label">Ansiedad 7d</div></div><div class="stat"><div class="value">${avgCheckin(7, 'pain') ?? '—'}</div><div class="label">Dolor 7d</div></div><div class="stat"><div class="value">${avgCheckin(7, 'sleepHours') ?? '—'}</div><div class="label">Sueño 7d</div></div></div>`)}
     </div>

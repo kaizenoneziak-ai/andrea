@@ -87,10 +87,12 @@ function renderInduccion() {
   }
   root.innerHTML = `
     <div class="induccion" role="dialog" aria-modal="true" aria-label="Presentación de Andrea">
-      <div class="induccion-card">
+      <div class="induccion-card ${induccionStep === 0 ? 'anim-entrada' : 'anim-paso'}">
+        <div class="induccion-paso">
         <div class="induccion-icon">${icon(paso.icon, 42)}</div>
         <h2>${esc(paso.titulo)}</h2>
         <p>${esc(paso.texto)}</p>
+        </div>
         ${paso.dedicatoria ? `<p class="dedicatoria">${esc(paso.dedicatoria)}</p>` : ''}
         ${siguiente}
         <div class="induccion-dots">${INDUCCION.map((_, i) => `<i class="${i === induccionStep ? 'on' : ''}"></i>`).join('')}</div>
