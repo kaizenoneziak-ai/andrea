@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /
+
+# Andrea es un espacio privado de cuidado. No debe indexarse en buscadores.

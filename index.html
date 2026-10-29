@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#8E3B26">
+<meta name="description" content="Andrea · un espacio privado de cuidado, compañía y memoria.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Andrea">
+<title>Andrea · La que es valiente</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<a class="skip-link" href="#view">Saltar al contenido</a>
+
+<!-- Pantalla de PIN -->
+<div id="lock-screen" class="lock-screen hidden">
+  <div class="lock-card">
+    <div class="brand-mark big" id="lock-brand"></div>
+    <h1 class="lock-title">Andrea</h1>
+    <p class="lock-sub">Tu espacio. Solo tuyo.</p>
+    <form data-form="unlock" class="lock-form">
+      <label for="pin">Tu PIN</label>
+      <input id="pin" name="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="••••" required>
+      <button class="btn primary full" type="submit">Entrar</button>
+    </form>
+    <p class="tiny muted">El PIN es una cortina de privacidad. Para cifrar el teléfono, usa el bloqueo del sistema.</p>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app" class="app hidden">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark" id="brand-mark"></div>
+      <div>
+        <div class="brand-name">Andrea</div>
+        <div class="brand-sub">La que es valiente</div>
+      </div>
+    </div>
+    <nav class="side-nav" id="side-nav" aria-label="Secciones de Andrea"></nav>
+    <div class="sidebar-foot">
+      <button class="btn soft small full" data-action="open-yasmin">Hablar con Yasmin</button>
+      <div class="privacy-note">
+        <strong>Privado por diseño</strong>
+        <span>Tus datos viven en este dispositivo. No se envían a ninguna nube.</span>
+      </div>
+      <button class="btn ghost small full" data-action="lock">Bloquear</button>
+      <div class="version" id="version-label">Andrea v0.6.2 · Kaizen</div>
+    </div>
+  </aside>
+
+  <div class="main-wrap">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn mobile-only" data-action="open-menu" aria-label="Abrir menú" id="menu-btn"></button>
+        <div class="topbar-titles">
+          <div class="topbar-kicker" id="topbar-kicker">Mi espacio</div>
+          <h1 class="topbar-title" id="page-title">Hoy</h1>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="date-chip" id="today-chip"></span>
+        <button class="icon-btn crisis-btn" data-action="crisis" aria-label="No estoy bien" title="No estoy bien">!</button>
+        <button class="icon-btn" data-action="lock" aria-label="Bloquear" title="Bloquear">&#128274;</button>
+      </div>
+    </header>
+
+    <main id="view" class="view" tabindex="-1" aria-label="Contenido principal"></main>
+
+    <footer class="app-footer">
+      <span>Andrea no reemplaza a tu equipo de salud. Si hay peligro inmediato: <strong>123</strong>.</span>
+      <span id="footer-credit">Hecha por tu hijo, para ti.</span>
+    </footer>
+  </div>
+
+  <nav class="bottomnav" id="bottomnav" aria-label="Navegación principal"></nav>
+</div>
+
+<div id="induccion-root"></div>
+<div id="momento-root"></div>
+<div id="modal-root"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="sr-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<noscript><p style="padding:24px;text-align:center">Andrea necesita JavaScript para funcionar en este dispositivo.</p></noscript>
+<script src="js/core.js"></script>
+<script src="js/views.js"></script>
+<script src="js/agenda.js"></script>
+<script src="js/views-more.js"></script>
+<script src="js/yasmin.js"></script>
+<script src="js/induccion.js"></script>
+<script src="js/actions.js"></script>
+</body>
+</html>

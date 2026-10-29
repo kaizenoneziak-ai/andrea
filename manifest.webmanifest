@@ -1,0 +1,25 @@
+{
+  "name": "Andrea · La que es valiente",
+  "short_name": "Andrea",
+  "description": "Espacio privado de cuidado, compañía y memoria: medicamentos, agenda, citas, registro, momentos de la familia y Yasmin.",
+  "lang": "es-CO",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#FAF4EC",
+  "theme_color": "#8E3B26",
+  "orientation": "portrait-primary",
+  "categories": ["health", "lifestyle", "medical"],
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Hablar con Yasmin", "url": "./index.html#yasmin" },
+    { "name": "Mi agenda", "url": "./index.html#agenda" },
+    { "name": "Mis medicamentos", "url": "./index.html#medicamentos" }
+  ]
+}
