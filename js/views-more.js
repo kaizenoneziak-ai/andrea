@@ -485,6 +485,7 @@ Object.assign(views, {
       ${card(`<div class="card-head"><div><h2>Andrea en tu celular</h2><div class="sub">Para llevarla contigo, sin depender del computador.</div></div>${badge(appInstalada() ? 'Instalada' : 'En el navegador', appInstalada() ? 'success' : 'info')}</div>
         <p class="small">Con su propio ícono, sin barra del navegador y funcionando sin conexión. En iPhone es la única forma de recibir avisos.</p>
         <div class="form-actions"><button class="btn primary small" data-action="instalar-app" ${appInstalada() ? 'hidden' : ''}>${icon('download', 15)} Instalar Andrea</button><button class="btn small ghost" data-action="test-notification">Probar un aviso</button></div>
+        ${/iphone|ipad|ipod/i.test(navigator.userAgent) && !appInstalada() ? '<p class="tiny muted" style="margin-top:8px">En iPhone: toca el botón <strong>Compartir</strong> de Safari y elige <strong>Agregar a pantalla de inicio</strong>. Queda con su propio ícono, como una app.</p>' : ''}
         <p class="tiny muted">Tus datos se quedan en el teléfono. Instalar no los sube a ninguna parte.</p>`)}
 
       ${card(`<div class="card-head"><div><h2>🧺 Datos y respaldo</h2><div class="sub">${kb} KB en este dispositivo</div></div>${badge(backupLabel, backupTone)}</div>

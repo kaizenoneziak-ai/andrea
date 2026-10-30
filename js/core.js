@@ -4,7 +4,7 @@ const LEGACY_KEY = 'alba_state_v1';
 /* Marca local del dispositivo: sirve para que la inducción se muestre en el
    teléfono aunque el respaldo importado diga que ya se vio en el PC. */
 const DEVICE_KEY = 'andrea_device_onboarded';
-const APP_VERSION = '0.7.1';
+const APP_VERSION = '0.7.2';
 const APP_NAME = 'Andrea';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -451,9 +451,9 @@ function normalizeState(raw) {
     yasminLearn: true, yasminFactsUpdatedAt: '',
     agendaSignature: '', agendaExportAt: null,
     feEnabled: true,
-    registroReminder: '20:00',
-    yasminFoto: !!s.settings.yasminFoto
+    registroReminder: '20:00'
   }, s.settings || {});
+  s.settings.yasminFoto = !!s.settings.yasminFoto;
   s.medications = Array.isArray(s.medications) ? s.medications : [];
   s.appointments = Array.isArray(s.appointments) ? s.appointments : [];
   s.events = Array.isArray(s.events) ? s.events : [];
@@ -596,6 +596,30 @@ function deviceInduccionVista() {
 }
 function marcarDeviceInduccionVista() {
   try { localStorage.setItem(DEVICE_KEY, '1'); } catch (e) { /* sin acceso al almacenamiento */ }
+}
+
+/* La dedicatoria con la foto se muestra UNA vez por dispositivo, justo
+   después de importar el respaldo: la inducción va primero, los datos y
+   este momento después. */
+function dedicatoriaVista() {
+  try { return localStorage.getItem('andrea_dedicatoria_vista') === '1'; } catch (e) { return false; }
+}
+function quizasMostrarDedicatoria() {
+  /* Si la inducción de este dispositivo todavía no se vio, la foto llegará
+     dentro de ella: la dedicatoria aparte sería repetir el momento. */
+  if (!state || !state.settings.fotoInduccion || dedicatoriaVista()) return;
+  if (typeof induccionDebeVerse === 'function' && induccionDebeVerse()) return;
+  try { localStorage.setItem('andrea_dedicatoria_vista', '1'); } catch (e) { return; }
+  setTimeout(() => {
+    const body = `
+      <div style="text-align:center">
+        <figure class="induccion-foto" style="margin:6px auto 14px"><img src="${state.settings.fotoInduccion}" alt="David y Andrea"></figure>
+        <h2 style="margin-bottom:8px">Empecemos juntas, mamá.</h2>
+        <p class="small muted" style="margin-bottom:14px">Todo lo tuyo ya está aquí: tus medicinas, tu gente y tus días. La inducción la viste al empezar; ahora sí, este espacio es tuyo.</p>
+        <button class="btn primary" data-action="cerrar-dedicatoria">Entrar a mi espacio</button>
+      </div>`;
+    if (typeof openModal === 'function') openModal({ title: 'Con amor, para ti', body });
+  }, 420);
 }
 
 function findDay(date) { return state.dailyLogs.find(d => d.date === date) || null; }
@@ -1763,6 +1787,7 @@ function importJSON(file) {
         ? `Bienvenida, ${nombre.split(' ')[0]}. ${resumen.length ? 'Ya están aquí tus ' + resumen.join(' y ') + '. ' : ''}Las alarmas cuentan desde hoy. Lo que falte, lo completamos juntas.`
         : 'Datos restaurados. Las alarmas cuentan desde hoy.');
       quizasMostrarInduccion();
+      quizasMostrarDedicatoria();
     } catch (e) {
       toast('No se pudo importar: ' + e.message);
     }

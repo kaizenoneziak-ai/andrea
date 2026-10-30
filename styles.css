@@ -889,3 +889,10 @@ details.form-extra[open]{background:rgba(255,255,255,.6)}
 /* ---------- dedicatoria final de la inducción ---------- */
 .induccion-foto{margin:0 0 14px;padding:8px;background:#FDFFFE;border-radius:18px;border:1px solid rgba(217,164,65,.45);box-shadow:0 14px 34px rgba(35,64,55,.18);display:inline-block}
 .induccion-foto img{border-radius:12px;display:block;width:min(290px,72vw)}
+
+/* ---------- chat a pantalla completa (sin hueco al final) ---------- */
+#view:has(.chat-log){display:flex;flex-direction:column;min-height:calc(100dvh - 210px)}
+#view:has(.chat-log) .chat-log{flex:1;max-height:none;min-height:180px}
+.chat-under{justify-content:center;gap:14px}
+.chat-under .link-btn{flex:0 0 auto;white-space:nowrap}
+@media (prefers-reduced-motion: reduce){.fe-mariposa{animation:none}}

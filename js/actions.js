@@ -546,6 +546,11 @@ function handleClick(event) {
       }
       break;
 
+    case 'cerrar-dedicatoria':
+      closeModal();
+      render();
+      break;
+
     case 'hablar-frase': {
       closeModal();
       navigate('yasmin');
