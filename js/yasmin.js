@@ -995,6 +995,25 @@ function yasminPensar(texto) {
     };
   }
 
+  /* 2d. Manejo: desde el chat se llega a cualquier editor de la app. */
+  if (yasminHas(t, 'editar', 'cambiar', 'modificar', 'agregar', 'agregue', 'agregá', 'poner', 'ponme', 'pónme', 'nueva cita', 'nuevo medicamento', 'nueva medicina', 'crear', 'configurar', 'llevame', 'llévame', 'ir a mis', 'ver mis citas', 'ver mis medicamentos', 'ver mis medicinas', 'mis alarmas', 'mis horarios', 'mi cuaderno', 'mi perfil', 'mis datos', 'mi red')) {
+    const chips = [];
+    const quiere = (...palabras) => palabras.some(pal => yasminHas(t, pal));
+    if (quiere('cita', 'consulta', 'doctor', 'medico', 'médico', 'psicolog', 'psiquiatr')) chips.push({ label: 'Mis citas', action: 'nav', id: 'citas' }, { label: 'Agregar una cita', action: 'add-appt' });
+    if (quiere('medic', 'pastilla', 'toma', 'dosis')) chips.push({ label: 'Mis medicamentos', action: 'nav', id: 'medicamentos' });
+    if (quiere('alarma', 'horario', 'hora de mis')) chips.push({ label: 'Horarios y alarmas', action: 'nav', id: 'ajustes' });
+    if (quiere('contacto', 'gente', 'familia', 'red', 'wilmar', 'brayan', 'alejandra', 'david')) chips.push({ label: 'Mi red de apoyo', action: 'nav', id: 'seguridad' });
+    if (quiere('nota', 'cuaderno', 'pendiente', 'anotar')) chips.push({ label: 'Mi cuaderno', action: 'nav', id: 'cuaderno' }, { label: 'Escribir una nota', action: 'add-note' });
+    if (quiere('recordatorio', 'agenda', 'evento')) chips.push({ label: 'Mi agenda', action: 'nav', id: 'agenda' }, { label: 'Nuevo recordatorio', action: 'add-event' });
+    if (quiere('perfil', 'mis datos', 'mi historia', 'foto')) chips.push({ label: 'Mi perfil e historia', action: 'nav', id: 'ajustes' });
+    if (!chips.length) chips.push({ label: 'Mis citas', action: 'nav', id: 'citas' }, { label: 'Mis medicamentos', action: 'nav', id: 'medicamentos' }, { label: 'Mi agenda', action: 'nav', id: 'agenda' }, { label: 'Mi cuaderno', action: 'nav', id: 'cuaderno' }, { label: 'Mi red de apoyo', action: 'nav', id: 'seguridad' });
+    yasminRemember({ topic: 'manejo', mood: emotion.key || '', intent: 'manejo', awaiting: '' });
+    return {
+      text: `Claro, vamos a ello. Toca lo que quieras ajustar y te llevo derecho — y si algo no se deja, me dices y lo vemos juntas.`,
+      chips: yasminChips(...chips)
+    };
+  }
+
   /* 3. Respuestas exactas de los chips */
   const exacto = yasminExactReply(t);
   if (exacto) {

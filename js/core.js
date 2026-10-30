@@ -4,7 +4,7 @@ const LEGACY_KEY = 'alba_state_v1';
 /* Marca local del dispositivo: sirve para que la inducción se muestre en el
    teléfono aunque el respaldo importado diga que ya se vio en el PC. */
 const DEVICE_KEY = 'andrea_device_onboarded';
-const APP_VERSION = '0.7.9';
+const APP_VERSION = '0.8.0';
 const APP_NAME = 'Andrea';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -1204,8 +1204,14 @@ function navigate(id) {
   render();
 }
 
+let rutaPrevia = null;
 function render() {
   if (!state) return;
+  /* Guardar no debe subir al tope: si la sección es la misma, la pantalla
+     vuelve exactamente a donde estaba la persona al terminar de pintar. */
+  const scrollAntes = window.scrollY;
+  const esNavegacion = rutaPrevia !== route;
+  rutaPrevia = route;
   const lock = $('#lock-screen');
   const app = $('#app');
   if (locked) {
@@ -1252,7 +1258,8 @@ function render() {
       if (log && chatCercaDelFinal(log)) chatAlFinal(log, false);
     }, 280);
   }
-  window.scrollTo(0, 0);
+  if (esNavegacion) window.scrollTo(0, 0);
+  else window.scrollTo(0, scrollAntes);
   const status = document.getElementById('sr-status');
   if (status) status.textContent = `${n.label}.`;
 }
@@ -1260,6 +1267,7 @@ function render() {
 function toast(message) {
   const el = $('#toast');
   el.textContent = message;
+  el.setAttribute('data-mostrado', '1');
   el.classList.add('show');
   const status = document.getElementById('sr-status');
   if (status) status.textContent = message;
