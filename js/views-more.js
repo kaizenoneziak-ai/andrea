@@ -506,7 +506,7 @@ Object.assign(views, {
       ${card(`<div class="card-head"><div><h2>🧺 Datos y respaldo</h2><div class="sub">${kb} KB en este dispositivo</div></div>${badge(backupLabel, backupTone)}</div>
         <p class="tiny muted">Último respaldo: ${s.lastBackup ? esc(formatDate(localDateISO(s.lastBackup))) : 'nunca'}. ${backupDays !== null && backupDays > 14 ? 'Ya pasaron más de dos semanas; vale la pena guardar uno hoy. ' : ''}Exporta con frecuencia y guarda el archivo en un lugar seguro. Tus fotos de perfil, de Yasmin y de Momentos también viajan dentro del respaldo.</p>
         <div class="form-actions"><button class="btn primary small" data-action="export-json">${icon('download', 15)} Exportar respaldo</button><button class="btn small" data-action="import-json">${icon('upload', 15)} Importar</button></div>
-        <input type="file" id="import-file" accept="application/json,.json" class="hidden" data-action="import-file">
+        <input type="file" id="import-file" accept="application/json,.json,application/octet-stream,text/plain" class="hidden" data-action="import-file">
         <div class="divider"></div>
         <div class="form-actions">${(window.ANDREA_SEED || window.ALBA_SEED) ? '<button class="btn small ghost" data-action="load-seed">Cargar plan inicial</button>' : ''}<button class="btn small danger" data-action="reset-all">Borrar todos los datos</button></div>
         <p class="tiny muted" style="margin-top:9px">«Cargar plan inicial» reemplaza los datos actuales por el plan de Yasmin. Úsalo solo en una instalación nueva o si tienes un respaldo.</p>`)}
@@ -551,7 +551,7 @@ function viewWelcome() {
         ${haySeed ? '<button class="btn" data-action="load-seed">Cargar plan inicial</button>' : ''}
       </div>
       <p style="margin-top:11px;font-size:.8rem;color:rgba(255,242,232,.78)">El respaldo es un archivo que termina en <strong>.json</strong> y suele estar en Descargas. Se importa sin conexión y no se envía a ninguna parte.</p>
-      <input type="file" id="import-file" accept="application/json,.json" class="hidden" data-action="import-file">
+      <input type="file" id="import-file" accept="application/json,.json,application/octet-stream,text/plain" class="hidden" data-action="import-file">
     </div>
     <div class="hero-sun">${brandMark(230)}</div>
   </section>

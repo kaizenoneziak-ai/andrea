@@ -4,7 +4,7 @@ const LEGACY_KEY = 'alba_state_v1';
 /* Marca local del dispositivo: sirve para que la inducción se muestre en el
    teléfono aunque el respaldo importado diga que ya se vio en el PC. */
 const DEVICE_KEY = 'andrea_device_onboarded';
-const APP_VERSION = '0.7.7';
+const APP_VERSION = '0.7.8';
 const APP_NAME = 'Andrea';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -1875,23 +1875,43 @@ async function exportJSON() {
     : 'Respaldo descargado. Guárdalo en un lugar seguro.');
 }
 function importJSON(file) {
+  /* Errores de importación en pantalla, no en un toast que se borra:
+     si algo falla en el teléfono, el mensaje queda visible para leerlo. */
+  const mostrarErrorImport = (detalle) => {
+    try {
+      openModal({
+        title: 'No se pudo importar',
+        body: `<p class="small"><strong>Motivo:</strong> ${esc(detalle)}</p>
+               <p class="tiny muted">Revisa que el archivo sea <strong>andrea-backup-2026-10-29.json</strong> y esté completo en Descargas. Si el problema sigue, toma una captura de esta pantalla y cuéntaselo a David.</p>
+               <div class="form-actions"><button class="btn primary" data-action="close-modal">Entendido</button></div>`
+      });
+    } catch (err) {
+      toast('No se pudo importar: ' + detalle);
+    }
+  };
+  if (!file) { mostrarErrorImport('No se eligió ningún archivo.'); return; }
   const reader = new FileReader();
   reader.onload = async () => {
+    let data = null;
     try {
-      const data = JSON.parse(reader.result);
+      let texto = String(reader.result || '');
+      if (texto.charCodeAt(0) === 0xFEFF) texto = texto.slice(1);
+      if (texto.trim().length < 20) throw new Error('El archivo llegó vacío o incompleto. Vuelve a copiarlo al teléfono.');
+      data = JSON.parse(texto);
       if (!data || !data.profile) throw new Error('El archivo no parece un respaldo de Andrea.');
-      if (!confirm('Esto reemplazará los datos actuales por los del respaldo. ¿Continuar?')) return;
+    } catch (e) {
+      mostrarErrorImport(e instanceof SyntaxError ? 'El archivo no es un respaldo válido (contenido dañado). Vuelve a copiarlo del PC por cable USB.' : e.message);
+      return;
+    }
+    if (!confirm('Esto reemplazará los datos actuales por los del respaldo. ¿Continuar?')) return;
+    try {
       const fotos = (data.fotos && typeof data.fotos === 'object' && !Array.isArray(data.fotos)) ? data.fotos : {};
       delete data.fotos;
       state = normalizeState(data);
-      /* Restaurar las imágenes antes de pintar: avatares y Momentos salen
-         completos desde el primer render. */
       for (const [id, dataUrl] of Object.entries(fotos)) {
         if (!FOTO_ID_RE.test(id) || !fotoDataUrlValida(dataUrl)) continue;
         try { await fotoGuardar(id, dataUrl); } catch (e) { /* sin espacio */ }
       }
-      /* Un respaldo viejo puede traer la marca de foto sin la imagen.
-         En ese caso, mostrar el respaldo limpio en vez de un hueco. */
       if (state.settings.yasminFoto && !(await fotoLeer('foto-yasmin'))) state.settings.yasminFoto = false;
       if (state.profile.foto && !(await fotoLeer('foto-andrea'))) state.profile.foto = false;
       if (state.settings.fotoInduccionVista && !(await fotoLeer(FOTO_INDUCCION))) state.settings.fotoInduccionVista = false;
@@ -1901,8 +1921,6 @@ function importJSON(file) {
       }
       locked = !!state.settings.pinHash;
       save(); render();
-      /* Poner al día: si el plan empezó hace días, las alarmas del calendario
-         cuentan desde hoy y las tomas de hoy se marcan desde cero. */
       const nombre = state.profile.displayName || state.profile.name;
       const meds = state.medications.filter(m => m.active !== false).length;
       const citas = state.appointments.length;
@@ -1912,16 +1930,16 @@ function importJSON(file) {
       toast(nombre
         ? `Bienvenida, ${nombre.split(' ')[0]}. ${resumen.length ? 'Ya están aquí tus ' + resumen.join(' y ') + '. ' : ''}Las alarmas cuentan desde hoy. Lo que falte, lo completamos juntas.`
         : 'Datos restaurados. Las alarmas cuentan desde hoy.');
-      /* Entrega en dos tiempos: si el respaldo llega de otro dispositivo,
-         la inducción se reproduce desde cero para quien recibe el teléfono,
-         aunque el acompañante la haya cerrado durante la preparación. */
+      /* La presentación y la dedicatoria van por separado: si algo de ellas
+         fallara, no se reporta como un error del respaldo (que ya entró). */
       try { localStorage.removeItem(DEVICE_KEY); } catch (e) { /* sin acceso */ }
-      quizasMostrarInduccion();
-      quizasMostrarDedicatoria();
+      try { quizasMostrarInduccion(); } catch (e) { console.warn('inducción:', e); }
+      try { quizasMostrarDedicatoria(); } catch (e) { console.warn('dedicatoria:', e); }
     } catch (e) {
-      toast('No se pudo importar: ' + e.message);
+      mostrarErrorImport(e && e.message ? e.message : String(e));
     }
   };
+  reader.onerror = () => mostrarErrorImport('No se pudo leer el archivo desde el teléfono. Vuelve a copiarlo por cable USB.');
   reader.readAsText(file);
 }
 async function resetAll() {
