@@ -89,8 +89,10 @@ function renderInduccion() {
     <div class="induccion" role="dialog" aria-modal="true" aria-label="Presentación de Andrea">
       <div class="induccion-card ${induccionStep === 0 ? 'anim-entrada' : 'anim-paso'}">
         <div class="induccion-paso">
-        <div class="induccion-icon">${icon(paso.icon, 42)}</div>
-        <h2>${esc(paso.titulo)}</h2>
+        ${ultimo && state.settings.fotoInduccion
+          ? `<figure class="induccion-foto"><img src="${state.settings.fotoInduccion}" alt="David y Andrea"></figure>`
+          : `<div class="induccion-icon">${icon(paso.icon, 42)}</div>`}
+        <h2>${esc(ultimo && state.settings.fotoInduccion ? 'Empecemos juntas, mamá.' : paso.titulo)}</h2>
         <p>${esc(paso.texto)}</p>
         </div>
         ${paso.dedicatoria ? `<p class="dedicatoria">${esc(paso.dedicatoria)}</p>` : ''}
