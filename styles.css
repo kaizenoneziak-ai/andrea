@@ -468,7 +468,10 @@ input[type="checkbox"]{width:auto;accent-color:var(--primary);transform:scale(1.
 .msg.yasmin{background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:6px;align-self:flex-start;box-shadow:var(--shadow)}
 .msg.ella{background:var(--primary);color:#fff;border-bottom-right-radius:6px;align-self:flex-end}
 .msg .meta{display:block;font-size:.64rem;opacity:.6;margin-top:5px;letter-spacing:.04em}
-.chat-chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:2px}
+/* Sugerencias en una sola fila deslizable: más espacio para la conversación */
+.chat-chips{display:flex;gap:7px;flex-wrap:nowrap;overflow-x:auto;padding:4px 2px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.chat-chips::-webkit-scrollbar{display:none}
+.chat-chips .chat-chip{flex:0 0 auto;white-space:nowrap}
 .chat-chip{border:1px solid #CFE3D9;background:#F0FAF5;color:#175C4B;border-radius:999px;padding:7px 12px;font-size:.78rem;font-weight:700;transition:background .16s,transform .12s}
 .chat-chip:hover{background:#FDEBD8}
 .chat-chip:active{transform:scale(.97)}
@@ -726,7 +729,8 @@ input[type="checkbox"]{width:auto;accent-color:var(--primary);transform:scale(1.
   .history-copy h1{font-size:1.62rem}
   .history-hero .hero-sun{opacity:.13;right:-66px;bottom:-66px}
   .today-agenda-item{grid-template-columns:62px minmax(0,1fr) auto;gap:9px}
-  .chat-head{padding:13px 14px}
+  .chat-head{padding:11px 13px}
+  .chat-avatar{width:42px;height:42px;flex:0 0 42px}
   .chat-tools .btn{padding:5px 8px;font-size:.72rem}
   .chat-log{max-height:calc(100dvh - 430px);min-height:220px}
   .chat-under .tiny{width:100%}
@@ -890,9 +894,27 @@ details.form-extra[open]{background:rgba(255,255,255,.6)}
 .induccion-foto{margin:0 0 14px;padding:8px;background:#FDFFFE;border-radius:18px;border:1px solid rgba(217,164,65,.45);box-shadow:0 14px 34px rgba(35,64,55,.18);display:inline-block}
 .induccion-foto img{border-radius:12px;display:block;width:min(290px,72vw)}
 
-/* ---------- chat a pantalla completa (sin hueco al final) ---------- */
-#view:has(.chat-log){display:flex;flex-direction:column;min-height:calc(100dvh - 210px)}
-#view:has(.chat-log) .chat-log{flex:1;max-height:none;min-height:180px}
+/* ---------- chat a pantalla completa ----------
+   La vista del chat tiene altura fija: la conversación desplaza POR DENTRO
+   (con la caja de escribir siempre a la vista) y nunca bloquea el tacto. */
+#view:has(.chat-log){display:flex;flex-direction:column;min-height:420px}
+/* En el chat el aviso de seguridad ya está dentro de la vista: el pie sobra */
+body:has(#view .chat-log) .app-footer{display:none}
+#view:has(.chat-log) .chat-shell{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
+#view:has(.chat-log) .chat-log{flex:1 1 0;min-height:120px;max-height:none;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#view:has(.chat-log) .chat-input,
+#view:has(.chat-log) .chat-under,
+#view:has(.chat-log) .chat-chips,
+#view:has(.chat-log) .chat-head{flex:0 0 auto}
+#view:has(.chat-log) .chat-under .tiny{font-size:.66rem;line-height:1.3}
+#view:has(.chat-log) .chat-shell{gap:9px}
+#view:has(.chat-log) .chat-head{padding:11px 14px}
+#view:has(.chat-log) .chat-avatar{width:44px;height:44px;flex:0 0 44px;box-shadow:0 0 0 4px rgba(46,155,128,.10)}
+#view:has(.chat-log) .chat-under{gap:9px;padding:0 3px}
 .chat-under{justify-content:center;gap:14px}
 .chat-under .link-btn{flex:0 0 auto;white-space:nowrap}
+/* Navegadores sin :has (falla segura): el comportamiento de siempre */
+@supports not selector(:has(*)){
+  #view .chat-log{max-height:calc(100dvh - 430px)}
+}
 @media (prefers-reduced-motion: reduce){.fe-mariposa{animation:none}}
