@@ -2,7 +2,7 @@
  * Estrategia local-first. No hay servidor remoto ni analítica.
  * Al cambiar archivos de la app, subir VERSION para limpiar el caché anterior.
  */
-const VERSION = 'andrea-v0.7.8';
+const VERSION = 'andrea-v0.7.9';
 const CORE = [
   './',
   './index.html',
@@ -22,9 +22,12 @@ const CORE = [
 ];
 
 self.addEventListener('install', event => {
+  /* Precarga tolerante a redes inestables: si un archivo falla, la instalación
+     NO se rompe (addAll era todo-o-nada y eso dejaba a Chrome «instalando»
+     para siempre). El fetch handler rellena los huecos al navegar. */
   event.waitUntil(
     caches.open(VERSION)
-      .then(cache => cache.addAll(CORE))
+      .then(cache => Promise.allSettled(CORE.map(r => cache.add(new Request(r, { cache: 'reload' })))))
       .then(() => self.skipWaiting())
   );
 });
