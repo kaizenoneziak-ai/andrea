@@ -232,6 +232,12 @@ views.hoy = function () {
       ${icon('shield', 19)} <span>Si hoy la cabeza te juega en contra, no estás sola. Tu plan está a un toque.</span><span class="arrow">→</span>
     </button>
 
+    ${datosVacios() ? `<section class="card" style="border-color:#E5CFA3;background:linear-gradient(180deg,#FDF6E6,#FFFDF8);margin-bottom:18px">
+      <div class="card-head"><div><h2>Aquí todavía no hay nada tuyo</h2><div class="sub">Los datos no viajan solos: viven en el teléfono donde se registraron.</div></div></div>
+      <p class="small">Si ya tienes el respaldo que te dejó tu hijo, impórtalo y aparece todo: medicinas, citas, tu historia y la foto de la inducción.</p>
+      <div class="form-actions"><button class="btn primary small" data-action="import-json">Importar mi respaldo</button><button class="btn small ghost" data-action="nav" data-id="ajustes">Configurar mi perfil</button></div>
+    </section>` : ''}
+
     ${proxima ? `<div class="next-dose">
       <div class="hour">${esc(proxima.time)}</div>
       <div class="who">

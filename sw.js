@@ -2,7 +2,7 @@
  * Estrategia local-first. No hay servidor remoto ni analítica.
  * Al cambiar archivos de la app, subir VERSION para limpiar el caché anterior.
  */
-const VERSION = 'andrea-v0.7.6';
+const VERSION = 'andrea-v0.7.7';
 const CORE = [
   './',
   './index.html',

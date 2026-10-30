@@ -529,20 +529,28 @@ Object.assign(views, {
 });
 
 /* ---------- bienvenida ---------- */
+function datosVacios() {
+  return !state.medications.length
+    && !state.appointments.length
+    && !state.momentos.length
+    && !state.dailyLogs.length
+    && !(state.chat || []).length;
+}
+
 function viewWelcome() {
   const haySeed = !!(window.ANDREA_SEED || window.ALBA_SEED);
   return `<section class="hero">
     <div class="hero-copy">
       <div class="eyebrow">Bienvenida</div>
-      <h1>Un lugar para cuidarte sin ruido.</h1>
-      <p>Este es tu espacio: aquí organizas tus medicamentos, tus citas y tus días. También guarda las fotos y las palabras de tu familia, para que no se te olvide que no estás sola.</p>
+      <h1>Este teléfono todavía está vacío.</h1>
+      <p>Y eso es normal: tus datos no viajan solos. Viven en el teléfono donde se registraron. Si ya tienes el respaldo que te dejó tu hijo, impórtalo y aparece todo de una vez: tus medicinas, tus citas, tu historia y la foto de la inducción.</p>
       <div class="hero-actions">
-        <button class="btn solid" data-action="nav" data-id="ajustes">Configurar mi perfil</button>
-        <button class="btn" data-action="import-json">Importar respaldo</button>
-        ${haySeed ? '<button class="btn" data-action="load-seed">Cargar plan inicial</button>' : ''}
+        <button class="btn solid" data-action="import-json">Importar mi respaldo</button>
         <button class="btn" data-action="reiniciar-induccion">Ver la inducción</button>
+        <button class="btn" data-action="nav" data-id="ajustes">Configurar mi perfil</button>
+        ${haySeed ? '<button class="btn" data-action="load-seed">Cargar plan inicial</button>' : ''}
       </div>
-      <p style="margin-top:11px;font-size:.8rem;color:rgba(255,242,232,.78)">¿Ya tienes un respaldo del computador? Impórtalo aquí y después revisa el perfil.</p>
+      <p style="margin-top:11px;font-size:.8rem;color:rgba(255,242,232,.78)">El respaldo es un archivo que termina en <strong>.json</strong> y suele estar en Descargas. Se importa sin conexión y no se envía a ninguna parte.</p>
       <input type="file" id="import-file" accept="application/json,.json" class="hidden" data-action="import-file">
     </div>
     <div class="hero-sun">${brandMark(230)}</div>
