@@ -997,3 +997,29 @@ label{font-size:.82rem;font-weight:700;color:var(--ink-2);margin-bottom:7px;lett
 .card-head h2{font-size:1.1rem;letter-spacing:0}
 .card-head .sub{font-size:.76rem}
 .view{padding-top:26px}
+
+/* ---------- animaciones de ejercicios ---------- */
+.ej-visual{background:linear-gradient(135deg,#DDF2EA,#E1EEF6);border-radius:16px;border:1px solid rgba(46,155,128,.2);padding:8px 6px;display:grid;place-items:center;margin-bottom:12px}
+.ej-visual svg{max-width:100%;height:auto}
+.ej-visual .ev-cadera{transform-origin:64px 58px;animation:ev-alterna 2.4s ease-in-out infinite}
+.ej-visual .ev-subelateral{transform-origin:60px 48px;animation:ev-alterna 2.4s ease-in-out infinite}
+.ej-visual .ev-rodilla{transform-origin:46px 62px;animation:ev-rodilla 2.4s ease-in-out infinite}
+.ej-visual .ev-rodilla-tobillo{transform-origin:60px 58px;animation:ev-tobillo 2.6s ease-in-out infinite}
+.ej-visual .ev-hombro{transform-origin:52px 28px;animation:ev-hombro 2.6s ease-in-out infinite}
+.ej-visual .ev-codo{transform-origin:66px 44px;animation:ev-codo 2.4s ease-in-out infinite}
+.ej-visual .ev-sube{animation:ev-sube 2.6s ease-in-out infinite}
+.ej-visual .ev-juntos{animation:ev-juntos 2.6s ease-in-out infinite}
+.ej-visual .ev-presiona{animation:ev-presiona 2.2s ease-in-out infinite}
+.ej-visual .ev-respira{animation:ev-respira 3.4s ease-in-out infinite}
+.ej-visual .ev-flecha,.ej-visual .ev-arco{animation:ev-latido 2.4s ease-in-out infinite}
+@keyframes ev-alterna{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-26deg)}}
+@keyframes ev-rodilla{0%,100%{transform:rotate(4deg)}50%{transform:rotate(-34deg)}}
+@keyframes ev-tobillo{0%,100%{transform:rotate(-18deg)}50%{transform:rotate(22deg)}}
+@keyframes ev-hombro{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-72deg)}}
+@keyframes ev-codo{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-62deg)}}
+@keyframes ev-sube{0%,100%{transform:translateY(4px)}50%{transform:translateY(-9px)}}
+@keyframes ev-juntos{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
+@keyframes ev-presiona{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(10px);opacity:1}}
+@keyframes ev-respira{0%,100%{transform:scale(.82);opacity:.4}50%{transform:scale(1.05);opacity:.9}}
+@keyframes ev-latido{0%,100%{opacity:.35}50%{opacity:1}}
+@media (prefers-reduced-motion: reduce){.ej-visual *{animation:none !important}}

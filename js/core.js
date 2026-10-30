@@ -4,7 +4,7 @@ const LEGACY_KEY = 'alba_state_v1';
 /* Marca local del dispositivo: sirve para que la inducción se muestre en el
    teléfono aunque el respaldo importado diga que ya se vio en el PC. */
 const DEVICE_KEY = 'andrea_device_onboarded';
-const APP_VERSION = '0.8.0';
+const APP_VERSION = '0.8.1';
 const APP_NAME = 'Andrea';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -229,6 +229,37 @@ function icon(name, size = 20) {
 /* Marca: sol que sale sobre una semilla — "cada día vuelve a empezar" */
 /* Avatares de perfil: la foto vive en IndexedDB ('foto-yasmin' / 'foto-andrea'),
    hydrateFotos las carga tras cada render. Sin foto, Yasmin muestra su mariposa. */
+/* Animaciones de ejercicios: una figura que muestra el movimiento en bucle,
+   elegida por palabras clave del nombre del ejercicio. Sin GIFs ni descargas. */
+function ejercicioVisual(nombre = '') {
+  const t = memoryFold(nombre);
+  const C = '#20342E';
+  const F = '#1F7A63';
+  const svg = cuerpo => `<svg viewBox="0 0 120 90" width="150" height="112" role="img" aria-hidden="true"><circle cx="60" cy="45" r="40" fill="rgba(46,155,128,.07)"/><g fill="none" stroke="${C}" stroke-width="5" stroke-linecap="round">${cuerpo}</g><g fill="${F}" stroke="none"><circle cx="106" cy="12" r="4"/><circle cx="14" cy="78" r="3"/></g></svg>`;
+  let cuerpo = '';
+  if (/puente/.test(t)) {
+    cuerpo = `<circle cx="24" cy="64" r="6" stroke="${C}"/><path d="M30 64h30"/><g class="ev-sube"><path d="M60 64 84 44"/><circle cx="60" cy="64" r="5" fill="${C}" stroke="none"/></g><path d="M84 44 96 66"/><path d="M90 68h14"/><path class="ev-flecha" d="M52 40v-14" stroke="${F}"/><path class="ev-flecha" d="M46 32l6-8 6 8" stroke="${F}"/>`;
+  } else if (/interescapul|escapul/.test(t)) {
+    cuerpo = `<circle cx="60" cy="18" r="7" stroke="${C}"/><path d="M60 26v26"/><g class="ev-juntos"><circle cx="48" cy="32" r="4.5" fill="${C}" stroke="none"/><circle cx="72" cy="32" r="4.5" fill="${C}" stroke="none"/></g><path d="M48 36 40 54M72 36l8 18"/><path class="ev-flecha" d="M53 32h-8M67 32h8" stroke="${F}"/>`;
+  } else if (/abducc/.test(t)) {
+    cuerpo = `<circle cx="60" cy="16" r="7" stroke="${C}"/><path d="M60 24v24"/><path d="M60 48 52 72"/><g class="ev-subelateral"><path d="M60 48 76 70"/></g><path d="M60 28 44 40M60 28l16 12"/><path class="ev-flecha" d="M80 52l10-6" stroke="${F}"/>`;
+  } else if (/tobillo/.test(t)) {
+    cuerpo = `<path d="M60 8v46"/><circle cx="60" cy="60" r="6" stroke="${C}" stroke-width="3"/><g class="ev-rodilla-tobillo"><path d="M60 60l16 6" stroke-width="6"/></g><path class="ev-arco" d="M78 46a18 18 0 0 1-6 24" stroke="${F}" stroke-width="3"/><path class="ev-flecha" d="M70 68l4 4-6 2" stroke="${F}" stroke-width="3"/>`;
+  } else if (/isom/.test(t)) {
+    cuerpo = `<path d="M28 46h56" stroke-width="7"/><circle cx="58" cy="58" r="8" stroke="${C}" stroke-width="3.5"/><g class="ev-presiona"><path d="M58 16v16" stroke="${F}"/><path d="M52 26l6 8 6-8" stroke="${F}"/></g><path d="M28 74h60" opacity=".35"/>`;
+  } else if (/hombro/.test(t)) {
+    cuerpo = `<circle cx="52" cy="16" r="7" stroke="${C}"/><path d="M52 24v30"/><path d="M52 54 46 76M52 54l8 22"/><g class="ev-hombro"><path d="M52 28l24 8"/><circle cx="78" cy="37" r="4" fill="${C}" stroke="none"/></g><path class="ev-flecha" d="M84 30l6-10" stroke="${F}"/>`;
+  } else if (/codo/.test(t)) {
+    cuerpo = `<circle cx="52" cy="16" r="7" stroke="${C}"/><path d="M52 24v30"/><path d="M52 54 46 76M52 54l8 22"/><path d="M52 30l14 14"/><g class="ev-codo"><path d="M66 44l14 12"/><circle cx="82" cy="58" r="5" fill="${C}" stroke="none"/></g><path class="ev-flecha" d="M88 48l4-10" stroke="${F}"/>`;
+  } else if (/rodilla/.test(t)) {
+    cuerpo = `<path d="M26 72h68" opacity=".35"/><circle cx="46" cy="18" r="7" stroke="${C}"/><path d="M46 26v36"/><path d="M46 62 34 62" stroke-width="4"/><g class="ev-rodilla"><path d="M46 62l24-4"/><circle cx="70" cy="57" r="4" fill="${C}" stroke="none"/></g><path d="M46 62h30" opacity=".3"/><path class="ev-flecha" d="M78 46l6-10" stroke="${F}"/>`;
+  } else if (/cadera/.test(t)) {
+    cuerpo = `<path d="M14 70h92" opacity=".35"/><circle cx="28" cy="58" r="6" stroke="${C}"/><path d="M34 58h30"/><g class="ev-cadera"><path d="M64 58 88 54"/><circle cx="90" cy="54" r="4" fill="${C}" stroke="none"/></g><path class="ev-flecha" d="M94 40v-12" stroke="${F}"/>`;
+  } else {
+    cuerpo = `<circle cx="60" cy="20" r="8" stroke="${C}"/><path d="M60 30v26"/><path d="M60 56 50 78M60 56l10 22"/><g class="ev-respira"><circle cx="60" cy="43" r="17" stroke="${F}" stroke-width="2.5" stroke-dasharray="4 6"/></g>`;
+  }
+  return `<div class="ej-visual">${svg(cuerpo)}</div>`;
+}
 function avatarYasmin(size = 30) {
   if (state && state.settings.yasminFoto) {
     return `<img class="avatar-yasmin" data-foto="foto-yasmin" alt="Yasmin" style="width:${size}px;height:${size}px">`;

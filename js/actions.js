@@ -551,6 +551,26 @@ function handleClick(event) {
       render();
       break;
 
+    case 'edit-profile': {
+      closeModal();
+      const p2 = state.profile;
+      const body = `
+        <form data-form="profile" class="form-grid">
+          <div class="form-grid two">${textInput('name', 'Nombre completo', p2.name)}${textInput('displayName', 'Cómo quieres que te llamen', p2.displayName)}</div>
+          <div class="form-grid two">${numberField('age', 'Edad', p2.age, 0, 120)}${textInput('startDate', 'Fecha de inicio del plan', p2.startDate, 'date')}</div>
+          <div><label for="m-provider">Institución / EPS</label><input id="m-provider" name="provider" value="${esc(p2.provider || '')}" list="eps-list-modal" placeholder="Escribe o elige tu EPS"><datalist id="eps-list-modal">${EPS_COLOMBIA.map(e => `<option value="${esc(e)}">`).join('')}</datalist></div>
+          <div><label for="m-allergies">Alergias</label><input id="m-allergies" name="allergies" value="${esc(p2.allergies || '')}" list="alergias-list-modal" placeholder="Medicamentos, alimentos, otra…"><datalist id="alergias-list-modal">${ALERGIAS_COMUNES.map(a => `<option value="${esc(a)}">`).join('')}</datalist></div>
+          <div class="row" style="margin-top:2px"><button class="chip" type="button" data-action="allergies-none">No tengo alergias</button><button class="chip" type="button" data-action="allergies-unknown">No sé / por confirmar</button></div>
+          ${yasminTip('Solo lo que quieras cambiar. Lo que dejes igual, se queda igual.')}
+          <div class="form-actions">
+            <button class="btn primary" type="submit">Guardar</button>
+            <button class="btn ghost" type="button" data-action="close-modal">Cancelar</button>
+          </div>
+        </form>`;
+      openModal({ title: 'Editar mi perfil', body });
+      break;
+    }
+
     case 'hablar-frase': {
       closeModal();
       navigate('yasmin');
@@ -643,13 +663,13 @@ function handleClick(event) {
     }
 
     case 'allergies-none': {
-      const campo = document.getElementById('f-allergies');
+      const campo = document.getElementById('f-allergies') || document.getElementById('m-allergies');
       if (campo) campo.value = 'Ninguna que sepa';
       break;
     }
 
     case 'allergies-unknown': {
-      const campo = document.getElementById('f-allergies');
+      const campo = document.getElementById('f-allergies') || document.getElementById('m-allergies');
       if (campo) campo.value = 'Por confirmar con el equipo de salud';
       break;
     }

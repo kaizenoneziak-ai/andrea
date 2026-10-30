@@ -996,17 +996,22 @@ function yasminPensar(texto) {
   }
 
   /* 2d. Manejo: desde el chat se llega a cualquier editor de la app. */
-  if (yasminHas(t, 'editar', 'cambiar', 'modificar', 'agregar', 'agregue', 'agregá', 'poner', 'ponme', 'pónme', 'nueva cita', 'nuevo medicamento', 'nueva medicina', 'crear', 'configurar', 'llevame', 'llévame', 'ir a mis', 'ver mis citas', 'ver mis medicamentos', 'ver mis medicinas', 'mis alarmas', 'mis horarios', 'mi cuaderno', 'mi perfil', 'mis datos', 'mi red')) {
+  if (yasminHas(t, 'editar', 'cambiar', 'modificar', 'agregar', 'agregue', 'agregá', 'poner', 'ponme', 'pónme', 'nueva cita', 'nuevo medicamento', 'nueva medicina', 'crear', 'configurar', 'llevame', 'llévame', 'ir a mis', 'ver mis citas', 'ver mis medicamentos', 'ver mis medicinas', 'mis alarmas', 'mis horarios', 'mi cuaderno', 'mi perfil', 'mis datos', 'mi red', 'actualizar mi perfil', 'actualizar mis datos', 'cambiar mi foto', 'mi foto', 'agregar un momento', 'nuevo momento', 'recuerdame que', 'recuérdame que')) {
+    /* Chips que abren los editores de verdad aquí mismo, sin cambiar de sección. */
     const chips = [];
     const quiere = (...palabras) => palabras.some(pal => yasminHas(t, pal));
-    if (quiere('cita', 'consulta', 'doctor', 'medico', 'médico', 'psicolog', 'psiquiatr')) chips.push({ label: 'Mis citas', action: 'nav', id: 'citas' }, { label: 'Agregar una cita', action: 'add-appt' });
-    if (quiere('medic', 'pastilla', 'toma', 'dosis')) chips.push({ label: 'Mis medicamentos', action: 'nav', id: 'medicamentos' });
+    if (quiere('cita', 'consulta', 'doctor', 'medico', 'médico', 'psicolog', 'psiquiatr')) chips.push({ label: 'Agregar una cita', action: 'add-appt' }, { label: 'Ver mis citas', action: 'nav', id: 'citas' });
+    if (quiere('medic', 'pastilla', 'dosis')) chips.push({ label: 'Agregar un medicamento', action: 'add-med' }, { label: 'Ver mis medicamentos', action: 'nav', id: 'medicamentos' });
+    if (quiere('toma', 'marcar')) chips.push({ label: 'Marcar una toma', action: 'nav', id: 'hoy' });
     if (quiere('alarma', 'horario', 'hora de mis')) chips.push({ label: 'Horarios y alarmas', action: 'nav', id: 'ajustes' });
-    if (quiere('contacto', 'gente', 'familia', 'red', 'wilmar', 'brayan', 'alejandra', 'david')) chips.push({ label: 'Mi red de apoyo', action: 'nav', id: 'seguridad' });
-    if (quiere('nota', 'cuaderno', 'pendiente', 'anotar')) chips.push({ label: 'Mi cuaderno', action: 'nav', id: 'cuaderno' }, { label: 'Escribir una nota', action: 'add-note' });
-    if (quiere('recordatorio', 'agenda', 'evento')) chips.push({ label: 'Mi agenda', action: 'nav', id: 'agenda' }, { label: 'Nuevo recordatorio', action: 'add-event' });
-    if (quiere('perfil', 'mis datos', 'mi historia', 'foto')) chips.push({ label: 'Mi perfil e historia', action: 'nav', id: 'ajustes' });
-    if (!chips.length) chips.push({ label: 'Mis citas', action: 'nav', id: 'citas' }, { label: 'Mis medicamentos', action: 'nav', id: 'medicamentos' }, { label: 'Mi agenda', action: 'nav', id: 'agenda' }, { label: 'Mi cuaderno', action: 'nav', id: 'cuaderno' }, { label: 'Mi red de apoyo', action: 'nav', id: 'seguridad' });
+    if (quiere('contacto', 'gente', 'familia', 'red', 'wilmar', 'brayan', 'alejandra')) chips.push({ label: 'Agregar contacto', action: 'add-contact' }, { label: 'Mi red de apoyo', action: 'nav', id: 'seguridad' });
+    if (quiere('nota', 'cuaderno', 'pendiente', 'anotar')) chips.push({ label: 'Escribir una nota', action: 'add-note' }, { label: 'Mi cuaderno', action: 'nav', id: 'cuaderno' });
+    if (quiere('recordatorio', 'agenda', 'evento', 'recuerdame que')) chips.push({ label: 'Nuevo recordatorio', action: 'add-event' }, { label: 'Mi agenda', action: 'nav', id: 'agenda' });
+    if (quiere('momento', 'foto de la familia', 'recuerdo con foto')) chips.push({ label: 'Agregar un momento', action: 'add-momento' }, { label: 'Ver Momentos', action: 'nav', id: 'momentos' });
+    if (quiere('foto', 'fotografía', 'fotografia')) chips.push({ label: 'Cambiar mi foto', action: 'foto-andrea-cambiar' }, { label: 'Foto de Yasmin', action: 'foto-yasmin-cambiar' });
+    if (quiere('perfil', 'mis datos', 'datos mios', 'actualizar')) chips.push({ label: 'Editar mi perfil aquí', action: 'edit-profile' });
+    if (quiere('mi historia', 'historia')) chips.push({ label: 'Mi historia', action: 'nav', id: 'historia' });
+    if (!chips.length) chips.push({ label: 'Agregar una cita', action: 'add-appt' }, { label: 'Agregar un medicamento', action: 'add-med' }, { label: 'Nuevo recordatorio', action: 'add-event' }, { label: 'Escribir una nota', action: 'add-note' }, { label: 'Editar mi perfil aquí', action: 'edit-profile' });
     yasminRemember({ topic: 'manejo', mood: emotion.key || '', intent: 'manejo', awaiting: '' });
     return {
       text: `Claro, vamos a ello. Toca lo que quieras ajustar y te llevo derecho — y si algo no se deja, me dices y lo vemos juntas.`,

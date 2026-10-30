@@ -473,6 +473,7 @@ views.ejercicios = function () {
       const log = day.exercises?.[e.id];
       return `<article class="exercise-card ${log?.done ? 'done' : ''}">
         <div class="between"><span class="badge ${log?.done ? 'success' : 'info'}">${esc(e.group)}</span>${log?.done ? `<span class="badge success">${icon('check', 12)} Hecho</span>` : ''}</div>
+        ${ejercicioVisual(e.name)}
         <h3>${esc(e.name)}</h3>
         <div class="exercise-meta">${badge(e.reps, 'clay')}${e.hold ? badge('Sostener ' + e.hold + ' s', 'warn') : ''}</div>
         <p>${esc(e.instructions)}</p>
