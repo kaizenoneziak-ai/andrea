@@ -4,7 +4,7 @@ const LEGACY_KEY = 'alba_state_v1';
 /* Marca local del dispositivo: sirve para que la inducción se muestre en el
    teléfono aunque el respaldo importado diga que ya se vio en el PC. */
 const DEVICE_KEY = 'andrea_device_onboarded';
-const APP_VERSION = '0.7.2';
+const APP_VERSION = '0.7.3';
 const APP_NAME = 'Andrea';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -1786,6 +1786,10 @@ function importJSON(file) {
       toast(nombre
         ? `Bienvenida, ${nombre.split(' ')[0]}. ${resumen.length ? 'Ya están aquí tus ' + resumen.join(' y ') + '. ' : ''}Las alarmas cuentan desde hoy. Lo que falte, lo completamos juntas.`
         : 'Datos restaurados. Las alarmas cuentan desde hoy.');
+      /* Entrega en dos tiempos: si el respaldo llega de otro dispositivo,
+         la inducción se reproduce desde cero para quien recibe el teléfono,
+         aunque el acompañante la haya cerrado durante la preparación. */
+      try { localStorage.removeItem(DEVICE_KEY); } catch (e) { /* sin acceso */ }
       quizasMostrarInduccion();
       quizasMostrarDedicatoria();
     } catch (e) {
