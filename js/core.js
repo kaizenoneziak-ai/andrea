@@ -4,7 +4,7 @@ const LEGACY_KEY = 'alba_state_v1';
 /* Marca local del dispositivo: sirve para que la inducción se muestre en el
    teléfono aunque el respaldo importado diga que ya se vio en el PC. */
 const DEVICE_KEY = 'andrea_device_onboarded';
-const APP_VERSION = '0.7.4';
+const APP_VERSION = '0.7.6';
 const APP_NAME = 'Andrea';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -432,7 +432,8 @@ let ui = {
   agendaMonth: todayISO().slice(0, 7),
   agendaDate: todayISO(),
   agendaFilter: 'todo',
-  agendaQuickFocus: false
+  agendaQuickFocus: false,
+  fotoInduccionSrc: null
 };
 
 function normalizeState(raw) {
@@ -607,13 +608,14 @@ function dedicatoriaVista() {
 function quizasMostrarDedicatoria() {
   /* Si la inducción de este dispositivo todavía no se vio, la foto llegará
      dentro de ella: la dedicatoria aparte sería repetir el momento. */
-  if (!state || !state.settings.fotoInduccion || dedicatoriaVista()) return;
+  const foto = induccionFotoSrc();
+  if (!state || !foto || dedicatoriaVista()) return;
   if (typeof induccionDebeVerse === 'function' && induccionDebeVerse()) return;
   try { localStorage.setItem('andrea_dedicatoria_vista', '1'); } catch (e) { return; }
   setTimeout(() => {
     const body = `
       <div style="text-align:center">
-        <figure class="induccion-foto" style="margin:6px auto 14px"><img src="${state.settings.fotoInduccion}" alt="David y Andrea"></figure>
+        <figure class="induccion-foto" style="margin:6px auto 14px"><img src="${foto}" alt="Un recuerdo de familia"></figure>
         <h2 style="margin-bottom:8px">Empecemos juntas, mamá.</h2>
         <p class="small muted" style="margin-bottom:14px">Todo lo tuyo ya está aquí: tus medicinas, tu gente y tus días. La inducción la viste al empezar; ahora sí, este espacio es tuyo.</p>
         <button class="btn primary" data-action="cerrar-dedicatoria">Entrar a mi espacio</button>
@@ -1167,11 +1169,38 @@ function updateNav() {
   $$('.bottom-link').forEach(el => el.classList.toggle('active', el.dataset.id === route));
 }
 
+/* Desplaza la conversación por dentro. Al entrar salta al final; al llegar
+   un mensaje nuevo acompaña con un movimiento suave. */
+function chatAlFinal(log, suave = false) {
+  if (!log) return;
+  if (suave && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    try { log.scrollTo({ top: log.scrollHeight, behavior: 'smooth' }); }
+    catch (e) { log.scrollTop = log.scrollHeight; }
+    return;
+  }
+  const previo = log.style.scrollBehavior;
+  log.style.scrollBehavior = 'auto';
+  log.scrollTop = log.scrollHeight;
+  log.style.scrollBehavior = previo;
+}
+
+/* ¿La persona está leyendo el final o se subió a leer algo anterior?
+   Solo se acompaña el desplazamiento si estaba abajo: nadie quiere que la
+   conversación se le escape de las manos mientras relee. */
+function chatCercaDelFinal(log, margen = 140) {
+  if (!log) return true;
+  return log.scrollHeight - log.clientHeight - log.scrollTop <= margen;
+}
+
 function navigate(id) {
   if (!views[id]) id = 'hoy';
   route = id;
   if (location.hash !== '#' + id) location.hash = id;
   closeModal();
+  /* Volver arriba ANTES de pintar: si se entra al chat desde la barra
+     inferior con la página desplazada, la vista quedaba corrida y el
+     registro parecía muerto. */
+  try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch (e) { window.scrollTo(0, 0); }
   render();
 }
 
@@ -1180,6 +1209,10 @@ function render() {
   const lock = $('#lock-screen');
   const app = $('#app');
   if (locked) {
+    /* La pantalla del PIN debe poder desplazarse siempre. Si se bloqueaba
+       estando en el chat, `route-yasmin` dejaba el body con overflow:hidden
+       y el PIN quedaba atrapado en pantallas pequeñas. */
+    document.body.classList.remove('route-yasmin', 'induccion-abierta', 'modal-open');
     lock.classList.remove('hidden');
     app.classList.add('hidden');
     return;
@@ -1187,6 +1220,9 @@ function render() {
   lock.classList.add('hidden');
   app.classList.remove('hidden');
   document.body.classList.toggle('discreet', !!state.settings.discreet);
+  /* El chat necesita una altura fija real para desplazar por dentro.
+     La clase evita depender de :has() y funciona en móviles antiguos. */
+  document.body.classList.toggle('route-yasmin', route === 'yasmin');
   const n = navItem(route) || navItem('hoy');
   $('#page-title').textContent = (!isSetup() && route === 'hoy') ? 'Bienvenida' : n.label;
   $('#topbar-kicker').textContent = state.settings.discreet ? 'Mi espacio' : 'Mi espacio de cuidado';
@@ -1201,8 +1237,20 @@ function render() {
   updateNav();
   hydrateFotos(view);
   if (route === 'yasmin') {
-    const log = $('#chat-log');
-    if (log) log.scrollTop = log.scrollHeight;
+    /* Al entrar al chat, saltar al final sin animación: con scroll suave
+       la conversación se veía bajar desde el principio. Se repite en el
+       siguiente cuadro porque las sugerencias y los avatares cambian la
+       altura después de pintar y dejaban el registro 30 px arriba. */
+    const alFinal = () => chatAlFinal($('#chat-log'), false);
+    alFinal();
+    requestAnimationFrame(alFinal);
+    setTimeout(alFinal, 90);
+    /* Las sugerencias pueden pasar a dos líneas después de pintar y le
+       quitan ~30 px al registro. Si la persona sigue abajo, se reancla. */
+    setTimeout(() => {
+      const log = $('#chat-log');
+      if (log && chatCercaDelFinal(log)) chatAlFinal(log, false);
+    }, 280);
   }
   window.scrollTo(0, 0);
   const status = document.getElementById('sr-status');
@@ -1322,6 +1370,12 @@ async function hydrateFotos(root = document) {
     if (dataUrl) { img.src = dataUrl; img.dataset.listo = '1'; }
     else { img.classList.add('hidden'); }
   }
+  /* Cargar los avatares cambia la altura de la cabecera del chat y con ella
+     el alto disponible del registro: si estaba al final, se vuelve a anclar. */
+  if (imgs.length && route === 'yasmin') {
+    const log = $('#chat-log');
+    if (log && chatCercaDelFinal(log)) chatAlFinal(log, false);
+  }
 }
 function comprimirImagen(file, max = 1280, quality = 0.82) {
   return new Promise((resolve, reject) => {
@@ -1345,6 +1399,54 @@ function comprimirImagen(file, max = 1280, quality = 0.82) {
     reader.onerror = () => reject(new Error('No se pudo abrir el archivo.'));
     reader.readAsDataURL(file);
   });
+}
+
+/* Las fotos viven en IndexedDB. Para que el respaldo por USB no las pierda,
+   se incluyen como dataURL dentro del JSON y se restauran al importar. */
+const FOTO_ID_RE = /^[A-Za-z0-9_-]{1,90}$/;
+const FOTO_INDUCCION = 'foto-induccion';
+/* La foto de la inducción se guarda en IndexedDB, no en el estado: un dataURL
+   dentro de localStorage se come la cuota y puede dejar de guardar todo. */
+function induccionFotoSrc() {
+  return ui.fotoInduccionSrc || (state && state.settings && state.settings.fotoInduccion) || null;
+}
+async function cargarFotoInduccion() {
+  /* Respaldos anteriores traían la foto dentro de settings: se mueve una vez
+     a IndexedDB y se libera el espacio del estado. */
+  const legado = state && state.settings && state.settings.fotoInduccion;
+  if (typeof legado === 'string' && /^data:image\//.test(legado)) {
+    try {
+      await fotoGuardar(FOTO_INDUCCION, legado);
+      state.settings.fotoInduccionVista = true;
+      delete state.settings.fotoInduccion;
+      save();
+    } catch (e) { /* sin espacio: se queda como estaba */ }
+  }
+  const src = await fotoLeer(FOTO_INDUCCION);
+  if (src) ui.fotoInduccionSrc = src;
+}
+function fotoIdsEnEstado(s = state) {
+  const ids = [];
+  if (s && s.settings && s.settings.yasminFoto) ids.push('foto-yasmin');
+  if (s && s.profile && s.profile.foto) ids.push('foto-andrea');
+  if (s && s.settings && s.settings.fotoInduccionVista) ids.push(FOTO_INDUCCION);
+  (s && Array.isArray(s.momentos) ? s.momentos : []).forEach(m => {
+    if (m && m.photoId) ids.push(String(m.photoId));
+  });
+  return [...new Set(ids.filter(id => FOTO_ID_RE.test(id)))];
+}
+function fotoDataUrlValida(valor) {
+  return typeof valor === 'string'
+    && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=\s]+$/i.test(valor)
+    && valor.length <= 12 * 1024 * 1024;
+}
+async function fotosExportar(s = state) {
+  const fotos = {};
+  for (const id of fotoIdsEnEstado(s)) {
+    const dataUrl = await fotoLeer(id);
+    if (fotoDataUrlValida(dataUrl)) fotos[id] = dataUrl;
+  }
+  return fotos;
 }
 
 /* ---------- momentos ---------- */
@@ -1758,21 +1860,45 @@ function lockNow() {
 }
 
 /* ---------- exportar / importar ---------- */
-function exportJSON() {
+async function exportJSON() {
   state.settings.lastBackup = nowISO();
   save();
-  downloadFile(`andrea-backup-${todayISO()}.json`, JSON.stringify(state, null, 2));
+  /* Incluye las fotos de perfil y de Momentos, que viven en IndexedDB.
+     Sin esto, al pasar el respaldo por USB se perdían las imágenes. */
+  const fotos = await fotosExportar();
+  const totalFotos = Object.keys(fotos).length;
+  const payload = Object.assign({}, state, { fotos });
+  downloadFile(`andrea-backup-${todayISO()}.json`, JSON.stringify(payload, null, 2));
   render();
-  toast('Respaldo descargado. Guárdalo en un lugar seguro.');
+  toast(totalFotos
+    ? `Respaldo descargado con ${totalFotos} foto${totalFotos === 1 ? '' : 's'}. Guárdalo en un lugar seguro.`
+    : 'Respaldo descargado. Guárdalo en un lugar seguro.');
 }
 function importJSON(file) {
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
     try {
       const data = JSON.parse(reader.result);
       if (!data || !data.profile) throw new Error('El archivo no parece un respaldo de Andrea.');
       if (!confirm('Esto reemplazará los datos actuales por los del respaldo. ¿Continuar?')) return;
+      const fotos = (data.fotos && typeof data.fotos === 'object' && !Array.isArray(data.fotos)) ? data.fotos : {};
+      delete data.fotos;
       state = normalizeState(data);
+      /* Restaurar las imágenes antes de pintar: avatares y Momentos salen
+         completos desde el primer render. */
+      for (const [id, dataUrl] of Object.entries(fotos)) {
+        if (!FOTO_ID_RE.test(id) || !fotoDataUrlValida(dataUrl)) continue;
+        try { await fotoGuardar(id, dataUrl); } catch (e) { /* sin espacio */ }
+      }
+      /* Un respaldo viejo puede traer la marca de foto sin la imagen.
+         En ese caso, mostrar el respaldo limpio en vez de un hueco. */
+      if (state.settings.yasminFoto && !(await fotoLeer('foto-yasmin'))) state.settings.yasminFoto = false;
+      if (state.profile.foto && !(await fotoLeer('foto-andrea'))) state.profile.foto = false;
+      if (state.settings.fotoInduccionVista && !(await fotoLeer(FOTO_INDUCCION))) state.settings.fotoInduccionVista = false;
+      ui.fotoInduccionSrc = await fotoLeer(FOTO_INDUCCION);
+      for (const m of state.momentos) {
+        if (m.photoId && !(await fotoLeer(m.photoId))) m.photoId = null;
+      }
       locked = !!state.settings.pinHash;
       save(); render();
       /* Poner al día: si el plan empezó hace días, las alarmas del calendario

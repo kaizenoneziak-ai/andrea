@@ -9,10 +9,10 @@
   --surface-2:#F4FBF7;
   --ink:#20342E;
   --ink-2:#35524A;
-  --muted:#5F7C73;
+  --muted:#587268;
   --line:#D6E8DF;
-  --primary:#1F7A63;
-  --primary-2:#2E9B80;
+  --primary:#1C7159;
+  --primary-2:#17614C;
   --primary-soft:#DDF2EA;
   --gold:#D9A441;
   --gold-ink:#8A6520;
@@ -462,7 +462,7 @@ input[type="checkbox"]{width:auto;accent-color:var(--primary);transform:scale(1.
 .chat-avatar{width:52px;height:52px;flex:0 0 52px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#A8D5C5,#1F7A63);color:#fff;font-family:var(--font-display);font-size:1.35rem;box-shadow:0 0 0 6px rgba(142,59,38,.08)}
 .chat-head strong{display:block;font-family:var(--font-display);font-size:1.2rem;line-height:1.1}
 .chat-head span{font-size:.76rem;color:var(--muted)}
-.chat-log{display:flex;flex-direction:column;gap:10px;padding:4px 2px 2px;min-height:220px;max-height:52vh;overflow-y:auto;scroll-behavior:smooth}
+.chat-log{display:flex;flex-direction:column;gap:10px;padding:4px 2px 2px;min-height:220px;max-height:52vh;overflow-y:auto;scroll-behavior:auto}
 .msg{max-width:min(86%,68ch);padding:11px 14px;border-radius:18px;font-size:.9rem;line-height:1.5;animation:msgIn .3s cubic-bezier(.22,.8,.3,1) both;white-space:pre-wrap;word-break:break-word}
 @keyframes msgIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
 .msg.yasmin{background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:6px;align-self:flex-start;box-shadow:var(--shadow)}
@@ -513,8 +513,8 @@ input[type="checkbox"]{width:auto;accent-color:var(--primary);transform:scale(1.
 @keyframes twinkle{0%,100%{opacity:0;transform:scale(.6)}45%{opacity:.85;transform:scale(1.15)}}
 
 /* ---------- inducción ---------- */
-.induccion{position:fixed;inset:0;z-index:180;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(900px 600px at 50% 0%,rgba(200,150,62,.28),transparent 60%),#20342E;color:#F0FAF5;animation:fade .3s ease}
-.induccion-card{width:min(520px,100%);text-align:center;animation:rise .5s cubic-bezier(.22,.8,.3,1) both}
+.induccion{position:fixed;inset:0;z-index:180;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;background:radial-gradient(900px 600px at 50% 0%,rgba(200,150,62,.28),transparent 60%),#20342E;color:#F0FAF5;animation:none}
+.induccion-card{width:min(520px,100%);margin:auto;text-align:center;animation:rise .5s cubic-bezier(.22,.8,.3,1) both}
 .induccion-icon{width:96px;height:96px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);color:#F4D998}
 .induccion h2{font-size:1.9rem;color:#fff;margin-bottom:10px}
 .induccion p{color:rgba(255,246,236,.86);font-size:.98rem;line-height:1.6}
@@ -680,7 +680,7 @@ input[type="checkbox"]{width:auto;accent-color:var(--primary);transform:scale(1.
 .chat-mic:disabled{opacity:.4;cursor:not-allowed}
 @keyframes pulseMic{0%,100%{box-shadow:0 0 0 0 rgba(163,43,34,.25)}50%{box-shadow:0 0 0 8px rgba(163,43,34,0)}}
 .chat-under{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:0 3px}
-.chat-under .tiny{flex:1 1 100%;color:var(--muted)}
+.chat-under .chat-safety{flex:1 1 100%;color:var(--muted)}
 
 /* ---------- responsive ---------- */
 @media (max-width: 980px){
@@ -733,7 +733,7 @@ input[type="checkbox"]{width:auto;accent-color:var(--primary);transform:scale(1.
   .chat-avatar{width:42px;height:42px;flex:0 0 42px}
   .chat-tools .btn{padding:5px 8px;font-size:.72rem}
   .chat-log{max-height:calc(100dvh - 430px);min-height:220px}
-  .chat-under .tiny{width:100%}
+  .chat-under .chat-safety{width:100%}
   .chat-send,.chat-mic{width:44px;height:44px;flex-basis:44px}
   .modal-foot{padding-bottom:calc(20px + env(safe-area-inset-bottom))}
 }
@@ -774,6 +774,23 @@ input[type="checkbox"]{width:auto;accent-color:var(--primary);transform:scale(1.
   .chat-log{max-height:calc(100dvh - 400px)}
   .chat-head{gap:10px}
   .chat-avatar{width:44px;height:44px;flex-basis:44px;font-size:1.15rem}
+  /* El cierre de la inducción debe caber en una pantalla de teléfono:
+     la foto y el texto se compactan para dejar visible «Entrar a mi espacio». */
+  .induccion{padding:14px}
+  .induccion h2{font-size:1.55rem;margin-bottom:8px}
+  .induccion p{font-size:.93rem;line-height:1.55}
+  .induccion .dedicatoria{font-size:1.02rem;margin-top:12px}
+  .induccion-foto{margin-bottom:10px;padding:6px;border-radius:15px}
+  .induccion-dots{margin:15px 0 4px}
+  .induccion-actions{margin-top:14px;gap:8px}
+  .induccion .skip{margin-top:10px}
+}
+@media (max-height: 720px){
+  .induccion h2{font-size:1.35rem}
+  .induccion p{font-size:.86rem;line-height:1.45}
+  .induccion-dots{margin:10px 0 3px}
+  .induccion-actions{margin-top:10px}
+  .induccion .skip{margin-top:6px}
 }
 
 /* ---------- checklist diario ---------- */
@@ -886,35 +903,59 @@ details.form-extra[open]{background:rgba(255,255,255,.6)}
 /* ---------- inducción: entrada solo al abrir, pasos con fundido suave ---------- */
 .induccion-card.anim-entrada{animation:rise .5s cubic-bezier(.22,.8,.3,1) both}
 .induccion-card.anim-paso{animation:none}
-.induccion-paso{animation:aparecer .3s ease both}
-@keyframes aparecer{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* Solo se mueve, nunca se desvanece: así ningún paso deja ver la app detrás. */
+.induccion-paso{animation:subir-paso .32s cubic-bezier(.22,.8,.3,1) both}
+@keyframes subir-paso{from{transform:translateY(10px)}to{transform:translateY(0)}}
 @media (prefers-reduced-motion: reduce){.induccion-paso{animation:none}}
+/* Cinturón y tirantes: mientras la inducción está abierta, la app no existe
+   para el ojo ni para el lector de pantalla, pase lo que pase con el overlay. */
+body.induccion-abierta #app{visibility:hidden}
+body.induccion-abierta{overflow:hidden}
 
 /* ---------- dedicatoria final de la inducción ---------- */
 .induccion-foto{margin:0 0 14px;padding:8px;background:#FDFFFE;border-radius:18px;border:1px solid rgba(217,164,65,.45);box-shadow:0 14px 34px rgba(35,64,55,.18);display:inline-block}
-.induccion-foto img{border-radius:12px;display:block;width:min(290px,72vw)}
+.induccion-foto img{border-radius:12px;display:block;width:clamp(185px,56vw,290px)}
 
 /* ---------- chat a pantalla completa ----------
    La vista del chat tiene altura fija: la conversación desplaza POR DENTRO
-   (con la caja de escribir siempre a la vista) y nunca bloquea el tacto. */
-#view:has(.chat-log){display:flex;flex-direction:column;min-height:420px}
+   (con la caja de escribir siempre a la vista) y nunca bloquea el tacto.
+   Se activa con body.route-yasmin desde render(), sin depender de :has(). */
+body.route-yasmin{overflow:hidden}
+body.route-yasmin .main-wrap{
+  height:100vh;height:100dvh;min-height:0;overflow:hidden;
+}
 /* En el chat el aviso de seguridad ya está dentro de la vista: el pie sobra */
-body:has(#view .chat-log) .app-footer{display:none}
-#view:has(.chat-log) .chat-shell{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
-#view:has(.chat-log) .chat-log{flex:1 1 0;min-height:120px;max-height:none;overflow-y:auto;-webkit-overflow-scrolling:touch}
-#view:has(.chat-log) .chat-input,
-#view:has(.chat-log) .chat-under,
-#view:has(.chat-log) .chat-chips,
-#view:has(.chat-log) .chat-head{flex:0 0 auto}
-#view:has(.chat-log) .chat-under .tiny{font-size:.66rem;line-height:1.3}
-#view:has(.chat-log) .chat-shell{gap:9px}
-#view:has(.chat-log) .chat-head{padding:11px 14px}
-#view:has(.chat-log) .chat-avatar{width:44px;height:44px;flex:0 0 44px;box-shadow:0 0 0 4px rgba(46,155,128,.10)}
-#view:has(.chat-log) .chat-under{gap:9px;padding:0 3px}
+body.route-yasmin .app-footer{display:none}
+body.route-yasmin #view{
+  display:flex;flex-direction:column;
+  flex:1 1 0;min-height:0;height:auto;
+  padding-bottom:14px;overflow:hidden;
+}
+body.route-yasmin .chat-shell{
+  display:flex;flex-direction:column;
+  flex:1 1 auto;min-height:0;height:100%;overflow:hidden;
+  gap:9px;
+}
+body.route-yasmin .chat-log{
+  flex:1 1 0;min-height:0;max-height:none;
+  overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  touch-action:pan-y;
+}
+body.route-yasmin .chat-input,
+body.route-yasmin .chat-under,
+body.route-yasmin .chat-chips,
+body.route-yasmin .chat-head{flex:0 0 auto}
+body.route-yasmin .chat-under .chat-safety{font-size:.66rem;line-height:1.3}
+body.route-yasmin .chat-head{padding:11px 14px}
+body.route-yasmin .chat-avatar{width:44px;height:44px;flex:0 0 44px;box-shadow:0 0 0 4px rgba(46,155,128,.10)}
+body.route-yasmin .chat-under{gap:9px;padding:0 3px}
 .chat-under{justify-content:center;gap:14px}
 .chat-under .link-btn{flex:0 0 auto;white-space:nowrap}
-/* Navegadores sin :has (falla segura): el comportamiento de siempre */
-@supports not selector(:has(*)){
-  #view .chat-log{max-height:calc(100dvh - 430px)}
+/* En móvil, dejar libre la barra inferior fija dentro de la altura del chat. */
+@media (max-width: 980px){
+  body.route-yasmin #view{
+    padding:14px 14px calc(76px + env(safe-area-inset-bottom));
+  }
 }
 @media (prefers-reduced-motion: reduce){.fe-mariposa{animation:none}}

@@ -69,6 +69,7 @@ function quizasMostrarInduccion() {
 
 function abrirInduccion(desdeCero = true) {
   if (desdeCero) induccionStep = 0;
+  if (!document.querySelector('.induccion')) ui.induccionFocus = document.activeElement;
   renderInduccion();
 }
 
@@ -77,42 +78,60 @@ function renderInduccion() {
   if (!root) return;
   const paso = INDUCCION[Math.min(induccionStep, INDUCCION.length - 1)];
   const ultimo = induccionStep >= INDUCCION.length - 1;
-  /* En el cierre, ofrecer los siguientes pasos según lo que ya tenga la app. */
-  let siguiente = '';
-  if (ultimo) {
-    const acciones = [];
-    if (state.medications.length && !state.settings.icsAt) acciones.push('<button class="btn" data-action="download-ics">Descargar mis alarmas</button>');
-    if (personalFilledCount() < PERSONAL_FIELDS.length) acciones.push('<button class="btn" data-action="nav" data-id="historia">Completar mi historia</button>');
-    if (acciones.length) siguiente = `<div class="induccion-next"><p class="tiny" style="margin:10px 0 8px">Cuando entres, esto te va a ayudar a poner todo al día:</p><div class="induccion-next-btns">${acciones.join('')}</div></div>`;
+  /* El cierre no acumula tareas: la prioridad es entrar. Descargar alarmas
+     y completar la historia siguen a un toque dentro de la app. */
+  const foto = induccionFotoSrc();
+  const contenido = `
+    <div class="induccion-paso">
+    ${ultimo && foto
+      ? `<figure class="induccion-foto"><img src="${foto}" alt="Un recuerdo de familia"></figure>`
+      : `<div class="induccion-icon">${icon(paso.icon, 42)}</div>`}
+    <h2>${esc(ultimo && foto ? 'Empecemos juntas, mamá.' : paso.titulo)}</h2>
+    <p>${esc(paso.texto)}</p>
+    </div>
+    ${paso.dedicatoria ? `<p class="dedicatoria">${esc(paso.dedicatoria)}</p>` : ''}
+    <div class="induccion-dots">${INDUCCION.map((_, i) => `<i class="${i === induccionStep ? 'on' : ''}"></i>`).join('')}</div>
+    <div class="induccion-actions">
+      ${induccionStep > 0 ? `<button class="btn" data-action="induccion-atras">Atrás</button>` : ''}
+      ${ultimo
+        ? `<button class="btn primary" data-action="induccion-fin">Entrar a mi espacio</button>
+           <button class="btn" data-action="induccion-pin">Poner mi PIN</button>`
+        : `<button class="btn primary" data-action="induccion-siguiente">Siguiente</button>`}
+    </div>
+    <button class="skip" data-action="induccion-fin">Saltar la presentación</button>`;
+  /* La capa oscura se crea UNA sola vez. En los pasos siguientes solo cambia
+     el contenido: así el fondo nunca deja ver la app entre «Siguiente». */
+  let overlay = root.querySelector('.induccion');
+  let card = overlay && overlay.querySelector('.induccion-card');
+  if (!overlay) {
+    root.innerHTML = `
+      <div class="induccion" role="dialog" aria-modal="true" aria-label="Presentación de Andrea">
+        <div class="induccion-card anim-entrada" tabindex="-1">${contenido}</div>
+      </div>`;
+    document.body.classList.add('induccion-abierta');
+    const app = document.getElementById('app');
+    if (app && 'inert' in app) app.inert = true;
+    const nueva = root.querySelector('.induccion-card');
+    setTimeout(() => { if (nueva && nueva.isConnected) nueva.focus({ preventScroll: true }); }, 30);
+    return;
   }
-  root.innerHTML = `
-    <div class="induccion" role="dialog" aria-modal="true" aria-label="Presentación de Andrea">
-      <div class="induccion-card ${induccionStep === 0 ? 'anim-entrada' : 'anim-paso'}">
-        <div class="induccion-paso">
-        ${ultimo && state.settings.fotoInduccion
-          ? `<figure class="induccion-foto"><img src="${state.settings.fotoInduccion}" alt="David y Andrea"></figure>`
-          : `<div class="induccion-icon">${icon(paso.icon, 42)}</div>`}
-        <h2>${esc(ultimo && state.settings.fotoInduccion ? 'Empecemos juntas, mamá.' : paso.titulo)}</h2>
-        <p>${esc(paso.texto)}</p>
-        </div>
-        ${paso.dedicatoria ? `<p class="dedicatoria">${esc(paso.dedicatoria)}</p>` : ''}
-        ${siguiente}
-        <div class="induccion-dots">${INDUCCION.map((_, i) => `<i class="${i === induccionStep ? 'on' : ''}"></i>`).join('')}</div>
-        <div class="induccion-actions">
-          ${induccionStep > 0 ? `<button class="btn" data-action="induccion-atras">Atrás</button>` : ''}
-          ${ultimo
-            ? `<button class="btn primary" data-action="induccion-fin">Entrar a mi espacio</button>
-               <button class="btn" data-action="induccion-pin">Poner mi PIN</button>`
-            : `<button class="btn primary" data-action="induccion-siguiente">Siguiente</button>`}
-        </div>
-        <button class="skip" data-action="induccion-fin">Saltar la presentación</button>
-      </div>
-    </div>`;
+  card.classList.remove('anim-entrada');
+  card.innerHTML = contenido;
+  card.focus({ preventScroll: true });
+  overlay.scrollTop = 0;
 }
 
 function cerrarInduccion() {
   const root = document.getElementById('induccion-root');
   if (root) root.innerHTML = '';
+  document.body.classList.remove('induccion-abierta');
+  const app = document.getElementById('app');
+  if (app && 'inert' in app && !document.querySelector('#modal-root .modal')) app.inert = false;
+  const volver = ui.induccionFocus;
+  ui.induccionFocus = null;
+  if (volver && volver.focus && !document.querySelector('#modal-root .modal')) {
+    setTimeout(() => { if (volver.isConnected) volver.focus(); }, 30);
+  }
   state.settings.onboarded = true;
   marcarDeviceInduccionVista();
   save();

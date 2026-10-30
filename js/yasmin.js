@@ -1397,13 +1397,26 @@ function chatMensajeHtml(m) {
 function renderChatLog(irAlFinal = true) {
   const log = document.getElementById('chat-log');
   if (!log) return;
+  const estabaAbajo = chatCercaDelFinal(log);
   log.innerHTML = state.chat.length ? state.chat.map(chatMensajeHtml).join('') : chatBienvenida(yasminName());
-  if (irAlFinal) log.scrollTop = log.scrollHeight;
+  if (irAlFinal && estabaAbajo) {
+    /* Anclaje inmediato y repetido: si se anima, la fila de sugerencias
+       cambia de alto a mitad del recorrido y el registro queda corto. */
+    chatAlFinal(log, false);
+    requestAnimationFrame(() => chatAlFinal(log, false));
+  }
 }
 function renderChatChips(chips) {
   const cont = document.getElementById('chat-chips');
   if (!cont) return;
   cont.innerHTML = (chips || []).map(c => `<button class="chat-chip" data-action="${esc(c.action)}" data-id="${esc(c.id || '')}" data-text="${esc(c.label)}">${esc(c.label)}</button>`).join('');
+  /* Las sugerencias pueden ocupar dos líneas y empujan la conversación:
+     si la persona estaba al final, se vuelve a anclar sin animación. */
+  const log = document.getElementById('chat-log');
+  if (log && chatCercaDelFinal(log)) {
+    chatAlFinal(log, false);
+    requestAnimationFrame(() => chatAlFinal(log, false));
+  }
 }
 
 views.yasmin = function () {
@@ -1443,7 +1456,7 @@ views.yasmin = function () {
         <button class="link-btn tiny" data-action="yasmin-leer">Leer la última</button>
         <button class="link-btn tiny" data-action="yasmin-detener-voz">Detener voz</button>
         <button class="link-btn tiny" data-action="nav" data-id="memoria">Lo que recuerdo</button>
-        <span class="tiny muted">${esc(nombre)} no es una profesional de salud ni reemplaza a tu equipo. Si hay peligro, llama al <strong>123</strong>.</span>
+        <span class="tiny muted chat-safety">${esc(nombre)} no es una profesional de salud ni reemplaza a tu equipo. Si hay peligro, llama al <strong>123</strong>.</span>
       </div>
     </div>`;
 };

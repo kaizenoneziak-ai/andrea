@@ -9,7 +9,7 @@
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "background_color": "#F2FAF6",
-  "theme_color": "#1F7A63",
+  "theme_color": "#1C7159",
   "orientation": "portrait-primary",
   "categories": ["health", "lifestyle", "medical"],
   "icons": [

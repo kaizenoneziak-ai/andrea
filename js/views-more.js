@@ -482,6 +482,21 @@ Object.assign(views, {
         </form>
         <p class="tiny muted">Los avisos programados necesitan la app abierta o instalada y permiso del navegador. Para alarmas que suenen siempre, usa el calendario del teléfono.</p>`)}
 
+      ${card(`<div class="card-head"><div><h2>La foto de la inducción</h2><div class="sub">El último paso de la presentación.</div></div>${induccionFotoSrc() ? badge('Puesta', 'success') : badge('Sin foto', 'info')}</div>
+        <div class="row" style="align-items:flex-start;gap:14px">
+          ${induccionFotoSrc()
+            ? `<img src="${induccionFotoSrc()}" alt="Foto de la inducción" style="width:132px;height:auto;border-radius:14px;border:1px solid var(--line)">`
+            : `<div class="empty" style="padding:14px;flex:1;text-align:left"><strong>Sin foto todavía</strong><span>Si pones una, el último paso de la inducción la muestra con «Empecemos juntas, mamá».</span></div>`}
+          <div style="flex:1;min-width:0">
+            <p class="small">Se guarda comprimida en este teléfono y también viaja dentro del respaldo.</p>
+            <div class="form-actions">
+              <button class="btn small primary" data-action="foto-induccion-cambiar">${icon('photo', 15)} ${induccionFotoSrc() ? 'Cambiar foto' : 'Poner una foto'}</button>
+              ${induccionFotoSrc() ? '<button class="btn small ghost" data-action="foto-induccion-quitar">Quitar</button>' : ''}
+              <button class="btn small ghost" data-action="reiniciar-induccion">Verla ahora</button>
+            </div>
+          </div>
+        </div>`)}
+
       ${card(`<div class="card-head"><div><h2>Andrea en tu celular</h2><div class="sub">Para llevarla contigo, sin depender del computador.</div></div>${badge(appInstalada() ? 'Instalada' : 'En el navegador', appInstalada() ? 'success' : 'info')}</div>
         <p class="small">Con su propio ícono, sin barra del navegador y funcionando sin conexión. En iPhone es la única forma de recibir avisos.</p>
         <div class="form-actions"><button class="btn primary small" data-action="instalar-app" ${appInstalada() ? 'hidden' : ''}>${icon('download', 15)} Instalar Andrea</button><button class="btn small ghost" data-action="test-notification">Probar un aviso</button></div>
@@ -489,7 +504,7 @@ Object.assign(views, {
         <p class="tiny muted">Tus datos se quedan en el teléfono. Instalar no los sube a ninguna parte.</p>`)}
 
       ${card(`<div class="card-head"><div><h2>🧺 Datos y respaldo</h2><div class="sub">${kb} KB en este dispositivo</div></div>${badge(backupLabel, backupTone)}</div>
-        <p class="tiny muted">Último respaldo: ${s.lastBackup ? esc(formatDate(localDateISO(s.lastBackup))) : 'nunca'}. ${backupDays !== null && backupDays > 14 ? 'Ya pasaron más de dos semanas; vale la pena guardar uno hoy. ' : ''}Exporta con frecuencia y guarda el archivo en un lugar seguro. Las fotos de Momentos no van dentro del JSON: se quedan en el teléfono.</p>
+        <p class="tiny muted">Último respaldo: ${s.lastBackup ? esc(formatDate(localDateISO(s.lastBackup))) : 'nunca'}. ${backupDays !== null && backupDays > 14 ? 'Ya pasaron más de dos semanas; vale la pena guardar uno hoy. ' : ''}Exporta con frecuencia y guarda el archivo en un lugar seguro. Tus fotos de perfil, de Yasmin y de Momentos también viajan dentro del respaldo.</p>
         <div class="form-actions"><button class="btn primary small" data-action="export-json">${icon('download', 15)} Exportar respaldo</button><button class="btn small" data-action="import-json">${icon('upload', 15)} Importar</button></div>
         <input type="file" id="import-file" accept="application/json,.json" class="hidden" data-action="import-file">
         <div class="divider"></div>

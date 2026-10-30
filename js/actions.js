@@ -691,6 +691,41 @@ function handleClick(event) {
       break;
     }
 
+    case 'foto-induccion-cambiar': {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = async () => {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        try {
+          const dataUrl = await comprimirImagen(file, 720, 0.84);
+          await fotoGuardar(FOTO_INDUCCION, dataUrl);
+          ui.fotoInduccionSrc = dataUrl;
+          state.settings.fotoInduccionVista = true;
+          delete state.settings.fotoInduccion;
+          save(); render();
+          toast('Foto guardada. Así se verá al final de la inducción.');
+        } catch (e) {
+          toast('No se pudo guardar la foto. Prueba con otra imagen.');
+        }
+      };
+      input.click();
+      break;
+    }
+
+    case 'foto-induccion-quitar': {
+      if (!confirm('¿Quitar la foto de la inducción?')) return;
+      fotoBorrar(FOTO_INDUCCION).then(() => {
+        ui.fotoInduccionSrc = null;
+        state.settings.fotoInduccionVista = false;
+        delete state.settings.fotoInduccion;
+        save(); render();
+        toast('Foto quitada.');
+      });
+      break;
+    }
+
     case 'fe-otra': {
       ui.feOffset = ((ui.feOffset || 0) + 1) % 14;
       render();
@@ -1317,18 +1352,21 @@ function handleInput(event) {
 function handleKeydown(event) {
   if (event.key === 'Escape') {
     if ($('#momento-root .momento-full')) { cerrarMomento(); return; }
+    /* La inducción no se cierra con Escape: es una presentación, no un aviso. */
+    if ($('#induccion-root .induccion')) return;
     const modal = $('#modal-root .modal');
     if (modal) closeModal();
   }
   if (event.key === 'Tab') {
-    const modal = $('#modal-root .modal');
-    if (!modal) return;
-    const focusables = $$('a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])', modal)
+    /* Trampa de foco para cualquier diálogo abierto (modal, inducción o momento). */
+    const dialog = $('#modal-root .modal') || $('#induccion-root .induccion') || $('#momento-root .momento-full');
+    if (!dialog) return;
+    const focusables = $$('a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])', dialog)
       .filter(el => el.offsetParent !== null);
-    if (!focusables.length) { event.preventDefault(); modal.focus(); return; }
+    if (!focusables.length) { event.preventDefault(); dialog.focus(); return; }
     const first = focusables[0];
     const last = focusables[focusables.length - 1];
-    if (!modal.contains(document.activeElement)) {
+    if (!dialog.contains(document.activeElement)) {
       event.preventDefault();
       first.focus();
     } else if (event.shiftKey && document.activeElement === first) {
@@ -1857,6 +1895,12 @@ function init() {
   locked = !!state.settings.pinHash;
   render();
 
+  /* La foto de la inducción vive en IndexedDB: se precarga antes de que la
+     presentación aparezca, para que el último paso no salga sin imagen. */
+  cargarFotoInduccion().then(() => {
+    if (document.querySelector('.induccion')) renderInduccion();
+  });
+
   /* En un dispositivo que abre Andrea por primera vez, la inducción aparece
      sola, sin botones. Al cerrarla queda marcada y no vuelve a salir sola. */
   quizasMostrarInduccion();
@@ -1871,6 +1915,7 @@ function init() {
     const next = (location.hash || '').replace('#', '');
     if (views[next] && next !== route) {
       route = next;
+      try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch (e) { window.scrollTo(0, 0); }
       render();
     }
   });
