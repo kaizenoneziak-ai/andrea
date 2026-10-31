@@ -333,7 +333,14 @@ Object.assign(views, {
           <div class="form-actions"><button class="btn ${learn ? '' : 'primary'} small" data-action="toggle-yasmin-learn">${learn ? 'Pausar el aprendizaje' : 'Activar el aprendizaje'}</button>${facts.length ? `<button class="btn small ghost" data-action="clear-facts">Borrar toda la memoria</button>` : ''}</div>
           <p class="tiny muted">Si lo pausas, dejas de guardar cosas nuevas. Lo que ya sabía sigue ahí hasta que lo borres.</p>`)}
         ${card(`<div class="card-head"><div><h2>Lo que he notado</h2><div class="sub">Últimos 7 días de registros.</div></div></div>
-          <ul class="insight-list">${insights.lines.map(line => `<li>${esc(line)}</li>`).join('')}</ul>
+          ${(() => {
+          const gaps = yasminGapsTop(6);
+          if (!gaps.length) return `<div class="card-head"><div><h2>📚 Lo que aún estoy aprendiendo</h2><div class="sub">Por ahora no tengo huecos: buena señal.</div></div></div><p class="small">Cuando no entienda algo que me cuentes, lo anoto aquí para aprenderlo en la próxima actualización.</p>`;
+          return `<div class="card-head"><div><h2>📚 Lo que aún no sé responder</h2><div class="sub">${gaps.length} hueco${gaps.length === 1 ? '' : 's'} anotado${gaps.length === 1 ? '' : 's'} para entrenarme</div></div></div>
+            <ul class="insight-list">${gaps.map(g => `<li><strong>${esc(g.texto)}</strong> <span class="tiny muted">· ${g.veces} vez${g.veces === 1 ? '' : 'es'} · ${esc(g.motivo)}</span></li>`).join('')}</ul>
+            <p class="tiny muted">Estas son las frases donde me quedé corta. Cuéntaselas a David: en la próxima actualización las aprendo de verdad. También puedes borrarlas con el tiempo.</p>`;
+        })()}
+        <ul class="insight-list">${insights.lines.map(line => `<li>${esc(line)}</li>`).join('')}</ul>
           <p class="tiny muted">Son observaciones de tus propios datos, no un diagnóstico. Si algo te preocupa, llévalo a tu próxima cita.</p>
           <div class="form-actions"><button class="btn small" data-action="nav" data-id="reporte">Ver reporte completo</button><button class="btn small ghost" data-action="nav" data-id="registro">Registrar hoy</button></div>`)}
       </div>

@@ -934,6 +934,21 @@ function yasminPensar(texto) {
   if (typeof yasminAprender === 'function') yasminAprender(raw, '', 'chat');
   const mem = state.yasminMemory || {};
 
+  /* 0. Correcciones: si dice que no la entendí, se anota y aprende. */
+  if (yasminHas(t, 'no entiendes', 'no me entiendes', 'no entendiste', 'te equivocaste', 'no es lo que', 'no pregunte eso', 'no pregunté eso', 'no es lo que pregunte', 'eso no es', 'mal entendido', 'entiende mal', 'no sabes responder', 'no puedes responder', 'no me has entendido', 'no era eso')) {
+    yasminGapRegistrar(raw, 'corrección de la persona');
+    yasminRemember({ topic: 'aprendo', mood: emotion.key || '', intent: 'correccion', awaiting: '' });
+    return {
+      text: `Tienes razón, me faltó entenderte — y eso me sirve muchísimo.
+
+¿Me lo dices una vez más, con otras palabras? Lo que me expliques queda guardado para responder mejor la próxima vez.`,
+      chips: yasminChips(
+        { label: 'Lo intento de nuevo', action: 'yasmin-chip', id: 'Solo quiero hablar' },
+        { label: 'Mejor mi frase del día', action: 'yasmin-chip', id: 'Cuéntame de mi frase de hoy' }
+      )
+    };
+  }
+
   /* 1. Riesgo: primero, sin rodeos y sin sermón */
   const riesgo = yasminRiesgo(t);
   if (riesgo) {
@@ -1248,6 +1263,7 @@ function yasminPensar(texto) {
       : emotion.key === 'rabia'
         ? '¿Qué necesitas poner como límite o pedir?'
         : '¿Quieres que te escuche, que te ayude a ordenar o que te distraiga un rato?';
+  yasminGapRegistrar(raw, 'sin intención reconocida');
   return {
     text: `${yasminToneIntro()}${cita || 'Te leo.'} No siempre tengo la respuesta correcta, pero sí tengo tiempo.\n\n${helps ? `Me acuerdo de que te ayuda: ${helps}. ` : ''}${family ? `También me acuerdo de tu gente: ${family}. ` : ''}${!helps && !family && memoria ? `${memoria} ` : ''}${pregunta} Si prefieres, solo quédate aquí y no digas nada.`,
     chips: yasminChips(

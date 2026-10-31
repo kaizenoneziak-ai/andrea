@@ -4,7 +4,7 @@ const LEGACY_KEY = 'alba_state_v1';
 /* Marca local del dispositivo: sirve para que la inducción se muestre en el
    teléfono aunque el respaldo importado diga que ya se vio en el PC. */
 const DEVICE_KEY = 'andrea_device_onboarded';
-const APP_VERSION = '0.8.1';
+const APP_VERSION = '0.8.2';
 const APP_NAME = 'Andrea';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -260,6 +260,29 @@ function ejercicioVisual(nombre = '') {
   }
   return `<div class="ej-visual">${svg(cuerpo)}</div>`;
 }
+/* Auto-entrenamiento de Yasmin: cuando cae en el recurso final o la persona
+   la corrige, se anota el hueco con contador. La sección Memoria los muestra
+   para que cada actualización le enseñe justo lo que falta. */
+function yasminGapRegistrar(texto, motivo) {
+  const limpio = String(texto || '').replace(/\s+/g, ' ').trim().slice(0, 140);
+  if (!limpio || limpio.length < 3) return;
+  const clave = memoryFold(limpio).slice(0, 60);
+  if (!clave) return;
+  state.yasminGaps = Array.isArray(state.yasminGaps) ? state.yasminGaps : [];
+  const existente = state.yasminGaps.find(g => g.clave === clave);
+  if (existente) {
+    existente.veces = (Number(existente.veces) || 1) + 1;
+    existente.ultima = nowISO();
+    if (motivo) existente.motivo = motivo;
+  } else {
+    state.yasminGaps.push({ clave, texto: limpio, motivo: motivo || 'sin respuesta', fecha: todayISO(), ultima: nowISO(), veces: 1 });
+  }
+  if (state.yasminGaps.length > 40) state.yasminGaps = state.yasminGaps.slice(-40);
+  save();
+}
+function yasminGapsTop(n = 6) {
+  return (state.yasminGaps || []).slice().sort((a, b) => (b.veces || 1) - (a.veces || 1)).slice(0, n);
+}
 function avatarYasmin(size = 30) {
   if (state && state.settings.yasminFoto) {
     return `<img class="avatar-yasmin" data-foto="foto-yasmin" alt="Yasmin" style="width:${size}px;height:${size}px">`;
@@ -509,6 +532,14 @@ function normalizeState(raw) {
     createdAt: n.createdAt || nowISO(),
     updatedAt: n.updatedAt || n.createdAt || nowISO()
   })) : [];
+  s.yasminGaps = Array.isArray(s.yasminGaps) ? s.yasminGaps.map(g => ({
+    clave: String(g.clave || memoryFold(g.texto || '').slice(0, 60)),
+    texto: String(g.texto || '').slice(0, 140),
+    motivo: String(g.motivo || 'sin respuesta').slice(0, 40),
+    fecha: /^\d{4}-\d{2}-\d{2}$/.test(String(g.fecha || '')) ? g.fecha : todayISO(),
+    ultima: g.ultima || nowISO(),
+    veces: Math.max(1, Number(g.veces) || 1)
+  })).filter(g => g.clave && g.texto) : [];
   s.pendientes = Array.isArray(s.pendientes) ? s.pendientes.map(x => ({
     id: x.id || uid('pen'),
     text: String(x.text || '').replace(/\s+/g, ' ').trim().slice(0, 200),
