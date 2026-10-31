@@ -442,11 +442,22 @@ function yasminAgendaQuery(raw) {
   };
 }
 function yasminDraftFromText(raw) {
-  const t = yasminNorm(raw);
-  if (!/^(recuerdame|recordarme|agendame|agenda|anota|anotame|apunta|apuntame|ponme|pon|crea|crear|agrega|agregar|programa|programar|reserva|reservar|no olvidar|no te olvides)\b/.test(t)) return null;
+  /* Matices reales: «quiero agendar una cita…» empieza con «quiero», y la
+     gente escribe «mañan» o «manana». Se limpian antes de entender. */
+    const crudo = String(raw || '').replace(/\bma[ñn]a+n\b/gi, 'mañana').replace(/\bma[ñn]ana{0,2}\b/gi, 'mañana');
+  const t = yasminNorm(crudo).replace(/^(quiero|necesito|tengo que|hay que|debo|quisiera|me gustaria|me gustaría)\s+/, '');
+  if (!/^(recuerdame|recordarme|agendame|agenda|agendar|anota|anotame|apunta|apuntame|ponme|crea|crear|agrega|agregar|programa|programar|programame|reserva|reservar|no olvidar|no te olvides|me toca|tengo cita|tengo una cita)/.test(t)) return null;
   let parsed;
-  try { parsed = parseAgendaText(raw, todayISO()); } catch (e) { return null; }
+  try { parsed = parseAgendaText(crudo, todayISO()); } catch (e) { return null; }
   if (!parsed || !parsed.title) return null;
+  parsed.title = String(parsed.title || '')
+    .replace(/^(quiero|necesito|tengo que|debo|quisiera|me gustaria|me gustaría)\s+/i, '')
+    .replace(/^(agendar|programar|anotar|poner|agregar|crear)\s+/i, '')
+    .replace(/\b(manana|mañana)\b/gi, '')
+    .replace(/\s+(para|de|el|la)\s*$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!parsed.title) parsed.title = parsed.type === 'Cita' ? 'Cita' : 'Recordatorio';
   ui.yasminEventDraft = Object.assign({}, parsed, { parsedFrom: raw, parsedSummary: parsed.parsedSummary });
   return {
     text: `Esto entendí, ${yasminAddress() ? yasminAddress().slice(2) : 'para ti'}:\n\n• ${parsed.title}\n• ${parsed.parsedSummary}\n\nPuede que la hora o la repetición necesiten un ajuste. Ábrelo, revísalo y guárdalo tú.`,
@@ -897,6 +908,50 @@ function yasminCapacidadesReply() {
 
 function yasminContextReply(t) {
   const mem = state.yasminMemory || {};
+  /* Seguir moldeando el borrador: «sí, lugar madrid», «pon que tengo que llevar…». */
+  const borrador = ui.yasminEventDraft;
+  if (borrador && (/(^| )(si|sí|ok|claro|dale|bueno|de una|así|asi)/.test(t) || /lugar/.test(t) || /pon (?:que )?/.test(t) || /tengo que llevar/.test(t))) {
+    const crudo = rawUltimo || '';
+    const mLugar = crudo.match(/lugar\s+(?:en\s+)?([A-Za-zÁÉÍÓÚÑáéíóúñ0-9 ,\.]{2,40})/i);
+    const mNotas = crudo.match(/(?:pon (?:que )?|anota (?:que )?|tengo que llevar)(.{3,140})/i);
+    let cambio = '';
+    if (mLugar) {
+      const lugar = mLugar[1].trim().replace(/[.,;]+$/, '');
+      if (lugar) { borrador.place = lugar.charAt(0).toUpperCase() + lugar.slice(1); cambio = `lugar «${borrador.place}»`; }
+    }
+    if (mNotas) {
+      const notas = mNotas[1].trim().replace(/[.,;]+$/, '');
+      if (notas) { borrador.notes = borrador.notes ? borrador.notes + '. ' + notas.charAt(0).toUpperCase() + notas.slice(1) : notas.charAt(0).toUpperCase() + notas.slice(1); cambio = cambio ? cambio + ' y lo que hay que llevar' : 'lo que hay que llevar'; }
+    }
+    if (cambio) {
+      return {
+        text: `Perfecto, quedó anotado: ${cambio}.
+
+Ya lo puedes guardar de una: revisa que todo esté como quieres y listo.`,
+        chips: yasminChips(
+          { label: 'Revisar y guardar', action: 'yasmin-event' },
+          { label: 'Prefiero escribirlo en la agenda', action: 'quick-add', id: borrador.date || todayISO() }
+        )
+      };
+    }
+  }
+  /* Confusión: «¿cómo así?» — pedir perdón y repetir lo importante. */
+  if (/^(como asi|cómo así|como\?|que\?|como|no entendi|no entendí tu respuesta|me confundiste)$/.test(t)) {
+    const historial = (state.chat || []).filter(m => m.role === 'yasmin');
+    const ultima = historial.length ? historial[historial.length - 1].text : '';
+    const importante = ultima.length > 220 ? ultima.slice(0, 217).trim() + '…' : ultima;
+    return {
+      text: `Perdón, me enredé. Te repito lo importante:
+
+«${importante || 'Estoy aquí contigo. ¿Qué necesitas?'}»
+
+Y si prefieres empezar por otro lado, tócale a lo que quieras ir.`,
+      chips: yasminChips(
+        { label: 'Mi checklist de hoy', action: 'nav', id: 'hoy' },
+        { label: 'Solo quiero compañía', action: 'yasmin-chip', id: 'Solo quiero compañía' }
+      )
+    };
+  }
   const short = yasminTokens(t).length <= 3;
   if (!short) return null;
   const afirmativo = ['si', 'claro', 'dale', 'listo', 'bueno', 'de una', 'hagale', 'hagamoslo', 'va'];
@@ -926,13 +981,35 @@ function yasminContextReply(t) {
 }
 
 /* ---------- núcleo de respuesta ---------- */
+let rawUltimo = '';
 function yasminPensar(texto) {
   const raw = String(texto || '').trim();
+  rawUltimo = raw;
   const t = yasminNorm(raw);
   const emotion = yasminEmotion(t);
   /* Aprender antes de responder permite usar lo que acaba de contar. */
-  if (typeof yasminAprender === 'function') yasminAprender(raw, '', 'chat');
+  let aprendido = [];
+  if (typeof yasminAprender === 'function') {
+    try { aprendido = yasminAprender(raw, '', 'chat') || []; } catch (e) { aprendido = []; }
+  }
   const mem = state.yasminMemory || {};
+
+  /* 0b. Confirmación de aprendizaje: «recuerda que me gustan los helados»
+     se confirma nombrando lo guardado — nunca se la lleva el tema Momentos. */
+  if (aprendido && aprendido.length && /(^| )(recuerda que|recuerde que|acuerdate de|acuérdese de|anota que|no olvides que)/.test(t)) {
+    yasminRemember({ topic: 'aprendo', mood: emotion.key || '', intent: 'aprendido', awaiting: '' });
+    const frases = { ayuda: 'te ayuda', evitar: 'te hace daño', gusto: 'te gusta', meta: 'quieres', sueno: 'con tu sueño', cuerpo: 'de tu cuerpo', nota: 'que te pedí recordar' };
+    const lista = aprendido.slice(0, 3).map(f => `«${f.text}» (${frases[f.kind] || 'me lo pediste recordar'})`).join(' y ');
+    return {
+      text: `Hecho, me queda guardado: ${lista}.
+
+Lo voy a tener en cuenta cuando hablemos. Y está en tu Memoria por si quieres verlo o borrarlo cuando quieras.`,
+      chips: yasminChips(
+        { label: 'Ver mi memoria', action: 'nav', id: 'memoria' },
+        { label: 'Seguir hablando', action: 'yasmin-chip', id: 'Solo quiero hablar' }
+      )
+    };
+  }
 
   /* 0. Correcciones: si dice que no la entendí, se anota y aprende. */
   if (yasminHas(t, 'no entiendes', 'no me entiendes', 'no entendiste', 'te equivocaste', 'no es lo que', 'no pregunte eso', 'no pregunté eso', 'no es lo que pregunte', 'eso no es', 'mal entendido', 'entiende mal', 'no sabes responder', 'no puedes responder', 'no me has entendido', 'no era eso')) {
@@ -964,6 +1041,17 @@ function yasminPensar(texto) {
       text: `Que quieras desaparecer no es un capricho ni una amenaza: es una señal de que estás cargando demasiado. No me asusto ni te voy a sermonear.\n\n¿Desaparecer de qué? ¿De la gente, de las preocupaciones, de sentir esto? Si en algún momento aparece la idea de hacerte daño, no te quedes sola: abre tu plan o llama al 123. Mientras tanto, quédate aquí conmigo un rato.`,
       chips: yasminChips(yasminCompaniaChip(), yasminPlanChip(), yasminBreatheChip())
     };
+  }
+
+  /* 2. Agendar: «recuérdame», «quiero agendar una cita para mañana a las 8»
+     va derecho al formulario con lo ya entendido — antes de que otro tema
+     (citas, agenda) lo intercepte. */
+  {
+    const draft = yasminDraftFromText(raw);
+    if (draft) {
+      yasminRemember({ topic: 'agenda', mood: emotion.key || '', intent: 'crear_evento', awaiting: 'event' });
+      return draft;
+    }
   }
 
   /* 2b. Frase del día: Yasmin razona la frase de la mariposa con la semana real */
@@ -1011,7 +1099,9 @@ function yasminPensar(texto) {
   }
 
   /* 2d. Manejo: desde el chat se llega a cualquier editor de la app. */
-  if (yasminHas(t, 'editar', 'cambiar', 'modificar', 'agregar', 'agregue', 'agregá', 'poner', 'ponme', 'pónme', 'nueva cita', 'nuevo medicamento', 'nueva medicina', 'crear', 'configurar', 'llevame', 'llévame', 'ir a mis', 'ver mis citas', 'ver mis medicamentos', 'ver mis medicinas', 'mis alarmas', 'mis horarios', 'mi cuaderno', 'mi perfil', 'mis datos', 'mi red', 'actualizar mi perfil', 'actualizar mis datos', 'cambiar mi foto', 'mi foto', 'agregar un momento', 'nuevo momento', 'recuerdame que', 'recuérdame que')) {
+  /* «pon que tengo que llevar…» es una nota, pase lo que pase con el borrador. */
+  const esNotaDeBorrador = /pon (?:que )?|anota (?:que )?|tengo que llevar|no olvidar/.test(t);
+  if (!esNotaDeBorrador && yasminHas(t, 'editar', 'cambiar', 'modificar', 'agregar', 'agregue', 'agregá', 'poner', 'ponme', 'pónme', 'nueva cita', 'nuevo medicamento', 'nueva medicina', 'crear', 'configurar', 'llevame', 'llévame', 'ir a mis', 'ver mis citas', 'ver mis medicamentos', 'ver mis medicinas', 'mis alarmas', 'mis horarios', 'mi cuaderno', 'mi perfil', 'mis datos', 'mi red', 'actualizar mi perfil', 'actualizar mis datos', 'cambiar mi foto', 'mi foto', 'agregar un momento', 'nuevo momento', 'recuerdame que', 'recuérdame que')) {
     /* Chips que abren los editores de verdad aquí mismo, sin cambiar de sección. */
     const chips = [];
     const quiere = (...palabras) => palabras.some(pal => yasminHas(t, pal));
@@ -1079,14 +1169,7 @@ function yasminPensar(texto) {
     };
   }
 
-  /* 7. Comandos de agenda: «recuérdame…» */
-  const draft = yasminDraftFromText(raw);
-  if (draft) {
-    yasminRemember({ topic: 'agenda', mood: emotion.key || '', intent: 'crear_evento', awaiting: 'event' });
-    return draft;
-  }
-
-  /* 7. Checklist y panorama: lo que ya está registrado, sin inventar. */
+    /* 7. Checklist y panorama: lo que ya está registrado, sin inventar. */
   if (yasminHas(t, 'checklist', 'mi lista de hoy', 'que me falta hoy', 'lo que me falta hoy', 'mis pendientes de hoy', 'que tengo pendiente hoy')) {
     yasminRemember({ topic: 'checklist', mood: emotion.key || '', intent: 'checklist', awaiting: '' });
     return yasminChecklistReply();
@@ -1172,9 +1255,21 @@ function yasminPensar(texto) {
   }
 
   /* 17. Familia y momentos */
-  if (yasminHas(t, 'familia', 'hijo', 'hijos', 'hija', 'hijas', 'mama', 'recuerdo', 'foto', 'fotos', 'momento', 'nieto', 'nietos', 'nieta', 'nietas', 'hermano', 'hermana', 'papa')) {
+  if (!/(^| )(recuerda que|recuerde que|acuerdate de|acuérdese de)/.test(t) && yasminHas(t, 'familia', 'hijo', 'hijos', 'hija', 'hijas', 'mama', 'recuerdo', 'recuerdos', 'foto', 'fotos', 'momento', 'nieto', 'nietos', 'nieta', 'nietas', 'hermano', 'hermana', 'papa')) {
     yasminRemember({ topic: 'familia', mood: emotion.key || '', intent: 'familia', awaiting: '' });
-    return yasminFamiliaReply();
+    const quien = (raw.match(/recuerdos?\s+(?:con|de|sobre)\s+([A-Za-zÁÉÍÓÚÑáéíóúñ]{3,15})/i) || [])[1];
+    const respuestaFamilia = yasminFamiliaReply();
+    if (quien) {
+      const Nombre = quien.charAt(0).toUpperCase() + quien.slice(1).toLowerCase();
+      respuestaFamilia.text = `Cuando activen Momentos, los recuerdos con ${Nombre} van a estar ahí esperándote, a pantalla completa.${state.momentos.length ? ' De hecho, hay algunos listos ya.' : ''}
+
+¿Quieres que le cuente a David que te gustan esos recuerdos, o te los guardo en mi memoria?`;
+      respuestaFamilia.chips = yasminChips(
+        { label: 'Ver Momentos', action: 'nav', id: 'momentos' },
+        { label: 'Guardar en mi memoria', action: 'yasmin-chip', id: `recuerda que tengo recuerdos especiales con ${Nombre}` }
+      );
+    }
+    return respuestaFamilia;
   }
 
   /* 18. Fe y sentido */
@@ -1263,6 +1358,22 @@ function yasminPensar(texto) {
       : emotion.key === 'rabia'
         ? '¿Qué necesitas poner como límite o pedir?'
         : '¿Quieres que te escuche, que te ayude a ordenar o que te distraiga un rato?';
+  /* Notas sueltas tipo «pon que tengo que llevar X»: al cuaderno, no al vacío. */
+  if (/pon (?:que )?|anota que|apunta que|tengo que llevar|no olvidar que/.test(t)) {
+    const textoNota = raw.replace(/^(y |y luego |pon que |pon |anota que |apunta que )/i, '').trim();
+    if (textoNota.length > 3) {
+      state.notas = Array.isArray(state.notas) ? state.notas : [];
+      state.notas.push({ id: uid('nota'), title: 'Para no olvidar', text: textoNota.charAt(0).toUpperCase() + textoNota.slice(1), date: todayISO(), createdAt: nowISO(), updatedAt: nowISO() });
+      save(); render();
+      yasminRemember({ topic: 'nota', intent: 'nota_creada', awaiting: '' });
+      return {
+        text: `Anotado en tu cuaderno: «${textoNota.charAt(0).toUpperCase() + textoNota.slice(1)}».
+
+Ya no lo tienes que cargar de memoria. Si era para una cita concreta, dímelo y lo dejamos dentro de esa cita.`,
+        chips: yasminChips({ label: 'Ver mi cuaderno', action: 'nav', id: 'cuaderno' }, { label: 'Nueva cita', action: 'add-appt' })
+      };
+    }
+  }
   yasminGapRegistrar(raw, 'sin intención reconocida');
   return {
     text: `${yasminToneIntro()}${cita || 'Te leo.'} No siempre tengo la respuesta correcta, pero sí tengo tiempo.\n\n${helps ? `Me acuerdo de que te ayuda: ${helps}. ` : ''}${family ? `También me acuerdo de tu gente: ${family}. ` : ''}${!helps && !family && memoria ? `${memoria} ` : ''}${pregunta} Si prefieres, solo quédate aquí y no digas nada.`,
